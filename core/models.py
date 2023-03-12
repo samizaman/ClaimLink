@@ -11,7 +11,7 @@ class Customer(models.Model):
 
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True)
-    phone_number = models.CharField(max_length=15, unique=True, null=True, default=None)
+    phone_number = models.CharField(max_length=15, unique=False, null=True, default=None)
     dob = models.DateField(null=True, help_text="Date of birth in the format YYYY-MM-DD")
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default="O")
     created_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
