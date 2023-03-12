@@ -9,7 +9,7 @@ def personal_details(request):
             # Extract personal details from POST request
             name = request.POST.get("name")
             email = request.POST.get("email")
-            phone_number = request.POST.get("phone_number")
+            phone_number = request.POST.get("phone_number", "")
             dob = request.POST.get("dob")
             gender = request.POST.get("gender")
 

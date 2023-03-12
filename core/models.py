@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Customer(models.Model):
@@ -9,22 +10,24 @@ class Customer(models.Model):
     ]
 
     name = models.CharField(max_length=100)
-    email = models.EmailField()
-    phone_number = models.CharField(max_length=20)
-    dob = models.DateField()
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-    date_added = models.DateTimeField(auto_now_add=True)
+    email = models.EmailField(blank=True)
+    phone_number = models.CharField(max_length=15, unique=True, null=True, default=None)
+    dob = models.DateField(null=True, help_text="Date of birth in the format YYYY-MM-DD")
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default="O")
+    created_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
+    timestamp = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.name
 
 
 class Claim(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, models.PROTECT, null=True, blank=True)
     date_of_loss = models.DateField()
     description_of_loss = models.TextField()
     passport = models.ImageField(upload_to="passport_photos/", blank=True, null=True)
-    date_added = models.DateTimeField(auto_now_add=True)
+    created_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
+    timestamp = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.customer.name} - {self.date_of_loss}"
