@@ -1,57 +1,86 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="max-w-2xl mx-auto py-6 sm:px-6 lg:px-8">
-    <h1 class="text-2xl font-semibold text-gray-900">Claim Form</h1>
-    <p class="mt-1 text-sm text-gray-600">
-      Please fill out the form below to submit your claim.
-    </p>
-    <div class="mt-6">
-      <form method="post">
-        {% csrf_token %}
-        <div>
-          <h2 class="text-lg font-medium text-gray-900">Personal Details</h2>
-          <div class="mt-4">
-            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-            <div class="mt-1">
-              <input type="text" name="name" id="name" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" required>
-            </div>
-          </div>
-          <div class="mt-4">
-            <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
-            <div class="mt-1">
-              <select name="gender" id="gender" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" required>
-                <option value="">Select</option>
-                <option value="M">Male</option>
-                <option value="F">Female</option>
-              </select>
-            </div>
-          </div>
-          <div class="mt-4">
-            <label for="dob" class="block text-sm font-medium text-gray-700">Date of Birth</label>
-            <div class="mt-1">
-              <input type="date" name="dob" id="dob" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" required>
-            </div>
-          </div>
-          <div class="mt-4">
-            <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
-            <div class="mt-1">
-              <input type="tel" name="phone_number" id="phone_number" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" required>
-            </div>
-          </div>
-          <div class="mt-4">
-            <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-            <div class="mt-1">
-              <input type="email" name="email" id="email" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" required>
-            </div>
-          </div>
-        </div>
+    <div class="max-w-2xl mx-auto py-6 sm:px-6 lg:px-8">
+        <h1 class="text-2xl font-semibold text-gray-900">Claim Form</h1>
+        <p class="mt-1 text-sm text-gray-600">
+            Please fill out the form below to submit your claim.
+        </p>
         <div class="mt-6">
-          <button type="submit" name="next-claims-details" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            Next: Claim Details
-          </button>
+            <div class="relative pt-1">
+                <div class="flex mb-2 items-center justify-between">
+                    <div>
+            <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
+              Step 1
+            </span>
+                    </div>
+                    <div class="text-right">
+            <span class="text-xs font-semibold inline-block text-indigo-600">
+              Personal Details
+            </span>
+                    </div>
+                </div>
+                <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200">
+                    <div style="width:25%"
+                         class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"></div>
+                </div>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900">Personal Details</h2>
+                    <div class="mt-4">
+                        <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                        <div class="mt-1">
+                            <input type="text" name="name" id="name"
+                                   class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                   required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
+                        <div class="mt-1">
+                            <select name="gender" id="gender"
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    required>
+                                <option value="">Select</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="dob" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                        <div class="mt-1">
+                            <input type="date" name="dob" id="dob"
+                                   class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                   required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <div class="mt-1">
+                            <input type="tel" name="phone_number" id="phone_number"
+                                   class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                   required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                        <div class="mt-1">
+                            <input type="email" name="email" id="email"
+                                   class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                   required>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button type="submit" name="next-claims-details"
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Next: Claim Details
+                    </button>
+                </div>
+            </form>
         </div>
-      </form>
     </div>
-  </div>
 {% endblock %}
