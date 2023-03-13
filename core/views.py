@@ -43,7 +43,8 @@ def claim_details(request):
             customer_id = request.session["customer_id"]
 
             # Create new Claim instance and save to database
-            customer = Customer.objects.get(customer_id=customer_id)
+            customer = Customer.objects.get(id=customer_id)
+
             claim = Claim(
                 customer=customer,
                 date_of_loss=date_of_loss,
@@ -65,6 +66,6 @@ def claim_details(request):
 
 def claim_success(request):
     claim_id = request.session["claim_id"]
-    claim = Claim.objects.get(claim_id=claim_id)
+    claim = Claim.objects.get(id=claim_id)
     customer = claim.customer
     return render(request, "claim_success.html", {"claim": claim, "customer": customer})
