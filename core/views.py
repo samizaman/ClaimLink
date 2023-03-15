@@ -87,7 +87,7 @@ def claim_details(request):
             date_of_loss = request.POST.get("date_of_loss")
             description_of_loss = request.POST.get("description_of_loss")
             passport = request.FILES.get("passport")
-            claim_amount = request.POST["claim_amount"]
+            claim_amount = request.POST.get("claim_amount")
 
             # Get customer ID from session
             customer_id = request.session["customer_id"]
