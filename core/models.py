@@ -28,6 +28,8 @@ class Claim(models.Model):
     passport = models.ImageField(upload_to="passport_photos/", blank=True, null=True)
     created_on = models.DateTimeField(default=timezone.now, editable=False, null=False, blank=False)
     timestamp = models.DateTimeField(default=timezone.now)
+    claim_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+
 
     def __str__(self):
         return f"{self.customer.name} - {self.date_of_loss}"
