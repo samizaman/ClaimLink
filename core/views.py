@@ -9,10 +9,10 @@ from core.models import Claim, Customer
 
 load_dotenv()
 
+
 def add_claim_to_blockchain(claim):
     goerli_url = "https://goerli.infura.io/v3/0f045722b7a548d7b170dd4ae314ff3d"
     w3 = Web3(Web3.HTTPProvider(goerli_url))
-
 
     account_address = os.getenv("ACCOUNT_ADDRESS")
     private_key = os.getenv("PRIVATE_KEY")
@@ -50,6 +50,10 @@ def add_claim_to_blockchain(claim):
     else:
         print("Transaction failed.")
         return False
+
+
+def home(request):
+    return render(request, "home.html")
 
 
 def personal_details(request):
