@@ -3,61 +3,49 @@
 {% block title %} Claim Details {% endblock %}
 
 {% block content %}
-    <div class="max-w-2xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div class="relative pt-1">
+    <div class="container mx-auto px-4 py-12">
+        <div class="relative pt-1 mb-8">
             <div class="flex mb-2 items-center justify-between">
                 <div>
-      <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
-        Step 2
-      </span>
+                    <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-indigo-600 bg-indigo-200">
+                        Step 2
+                    </span>
                 </div>
                 <div class="text-right">
-      <span class="text-xs font-semibold inline-block text-indigo-600">
-        Claim Details
-      </span>
+                    <span class="text-xs font-semibold inline-block text-indigo-600">
+                        Claim Details
+                    </span>
                 </div>
             </div>
             <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200">
-                <div style="width:50%"
-                     class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"></div>
+                <div style="width:50%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"></div>
             </div>
         </div>
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded shadow">
             {% csrf_token %}
-            <h2 class="text-lg font-medium text-gray-900">Claim Details</h2>
-            <div class="mt-4 mb-4">
-                <label for="date_of_loss" class="block text-gray-700 font-bold mb-2">Date of Loss:</label>
-                <input type="date" name="date_of_loss" id="date_of_loss"
-                       class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                       required>
+            <h2 class="text-2xl font-semibold mb-4">Claim Details</h2>
+            <div class="mb-4">
+                <label for="date_of_loss" class="block mb-2">Date of Loss:</label>
+                <input type="date" name="date_of_loss" id="date_of_loss" class="w-full p-2 border rounded" required>
             </div>
             <div class="mb-4">
-                <label for="claim_amount" class="block text-gray-700 font-bold mb-2">Claim Amount:</label>
-                <input type="text" name="claim_amount" id="claim_amount"
-                       class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                       placeholder="Enter claim amount" required>
+                <label for="claim_amount" class="block mb-2">Claim Amount:</label>
+                <input type="text" name="claim_amount" id="claim_amount" class="w-full p-2 border rounded" placeholder="Enter claim amount" required>
             </div>
 
             <div class="mb-4">
-                <label for="description_of_loss" class="block text-gray-700 font-bold mb-2">Description of Loss:</label>
-                <textarea name="description_of_loss" id="description_of_loss"
-                          class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                          rows="4" required></textarea>
+                <label for="description_of_loss" class="block mb-2">Description of Loss:</label>
+                <textarea name="description_of_loss" id="description_of_loss" class="w-full p-2 border rounded" rows="4" required></textarea>
             </div>
 
             <div class="mb-4">
-                <label for="passport" class="block text-gray-700 font-bold mb-2">Claimant's Passport:</label>
-                <input type="file" name="passport" id="passport" accept="image/*"
-                       class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                       required
-                       title="Please upload a valid passport. Submitting a fake or incorrect document is illegal.">
+                <label for="passport" class="block mb-2">Claimant's Passport:</label>
+                <input type="file" name="passport" id="passport" accept="image/*" class="w-full p-2 border rounded" required title="Please upload a valid passport. Submitting a fake or incorrect document is illegal.">
             </div>
 
-            <button type="submit" name="submit-btn"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+            <button type="submit" name="submit-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded">
                 Submit
             </button>
         </form>
     </div>
 {% endblock %}
-
