@@ -44,7 +44,7 @@ def add_claim_to_blockchain(claim):
     # Check if the transaction was successful
     if transaction_receipt["status"]:
         print(
-            f"Transaction was successfully added to the blockchain with hash {transaction_hash.hex()}"
+            f"Transaction was successfully added to the blockchain. View the transaction at https://goerli.etherscan.io/tx/{transaction_hash.hex()}"
         )
         return True
     else:
