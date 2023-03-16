@@ -58,3 +58,6 @@ class Block(models.Model):
     block_hash = models.CharField(max_length=255)
     previous_block_hash = models.CharField(max_length=255)
     timestamp = models.DateTimeField()
+
+    def __str__(self):
+        return f"Block {self.block_number} - Claim {self.claim.id} - Customer {self.customer.id}"

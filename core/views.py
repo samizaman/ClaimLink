@@ -33,7 +33,7 @@ def add_claim_to_blockchain(claim):
         "gas": 210000,
         "gasPrice": w3.toWei("50", "gwei"),
         "nonce": w3.eth.getTransactionCount(account_address),
-        "data": w3.toHex(json.dumps(claim).encode("utf-8")),
+        "data": w3.toHex(json.dumps(str(claim['id'])).encode("utf-8")),
     }
 
     # Sign the transaction
@@ -55,11 +55,15 @@ def add_claim_to_blockchain(claim):
         # Retrieve the block information
         block = w3.eth.getBlock(block_number)
 
+        # Get the customer instance using the customer_id
+        customer = Customer.objects.get(id=claim['customer_id'])
+        claim = Claim.objects.get(id=claim['id'])
+
         # Create and save the Block instance
         goerli = Blockchain.objects.get(network_name="Goerli Testnet")
         block_instance = Block(
             blockchain=goerli,
-            customer=claim.customer,
+            customer=customer,
             claim=claim,
             block_number=block_number,
             block_hash=block["hash"].hex(),
