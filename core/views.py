@@ -1,12 +1,14 @@
 import json
 import os
+from datetime import datetime
 
 from django.core.files.storage import default_storage
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from dotenv import load_dotenv
 from web3 import Web3
 
-from core.models import Claim, Customer
+from core.models import Block, Blockchain, Claim, Customer
 
 load_dotenv()
 
@@ -48,6 +50,22 @@ def add_claim_to_blockchain(claim):
         print(
             f"Transaction was successfully added to the blockchain. View the transaction at https://goerli.etherscan.io/tx/{transaction_hash.hex()}"
         )
+        # Get the block number from the transaction receipt
+        block_number = transaction_receipt["blockNumber"]
+        # Retrieve the block information
+        block = w3.eth.getBlock(block_number)
+
+        # Create and save the Block instance
+        goerli = Blockchain.objects.get(network_name="Goerli Testnet")
+        block_instance = Block(
+            blockchain=goerli,
+            block_number=block_number,
+            block_hash=block["hash"].hex(),
+            previous_block_hash=block["parentHash"].hex(),
+            timestamp=timezone.make_aware(datetime.fromtimestamp(block["timestamp"])),
+        )
+        block_instance.save()
+
         return True
     else:
         print("Transaction failed.")
@@ -93,7 +111,9 @@ def claim_details(request):
 
             # Save the uploaded passport file and store the file path
             if passport:
-                passport_path = default_storage.save(f"passport_photos/{passport.name}", passport)
+                passport_path = default_storage.save(
+                    f"passport_photos/{passport.name}", passport
+                )
             else:
                 passport_path = ""
 

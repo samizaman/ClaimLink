@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Claim, Customer
+
+from .models import Block, Blockchain, Claim, Customer
 
 
 class ClaimAdmin(admin.ModelAdmin):
@@ -14,5 +15,23 @@ class CustomerAdmin(admin.ModelAdmin):
     ordering = ("-timestamp",)
 
 
+class BlockchainAdmin(admin.ModelAdmin):
+    list_display = ("network_name", "network_url")
+
+
+class BlockAdmin(admin.ModelAdmin):
+    list_display = (
+        "block_number",
+        "block_hash",
+        "previous_block_hash",
+        "timestamp",
+        "blockchain",
+    )
+    search_fields = ("block_number", "block_hash", "previous_block_hash")
+    list_filter = ("blockchain",)
+
+
+admin.site.register(Block, BlockAdmin)
+admin.site.register(Blockchain, BlockchainAdmin)
 admin.site.register(Claim, ClaimAdmin)
 admin.site.register(Customer, CustomerAdmin)
