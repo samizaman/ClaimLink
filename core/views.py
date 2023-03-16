@@ -83,46 +83,22 @@ def personal_details(request):
 
 def claim_details(request):
     if request.method == "POST":
-        if "submit-btn" in request.POST:
+        if "next-claim-summary" in request.POST:
             # Extract claim details from POST request
             date_of_loss = request.POST.get("date_of_loss")
             description_of_loss = request.POST.get("description_of_loss")
             passport = request.FILES.get("passport")
             claim_amount = request.POST.get("claim_amount")
 
-            # Get customer ID from session
-            customer_id = request.session["customer_id"]
-
-            # Create new Claim instance and save to database
-            customer = Customer.objects.get(id=customer_id)
-
-            claim = Claim(
-                customer=customer,
-                date_of_loss=date_of_loss,
-                description_of_loss=description_of_loss,
-                passport=passport,
-                claim_amount=claim_amount,
-            )
-            claim.save()
-
-            # Add claim to blockchain
-            claim_data = {
-                "id": claim.id,
-                "customer_id": claim.customer.id,
-                "date_of_loss": claim.date_of_loss,
-                "description_of_loss": claim.description_of_loss,
-                "claim_amount": str(claim.claim_amount),
-                "created_on": claim.created_on.isoformat(),
+            # Store claim details in session
+            request.session["claim_details"] = {
+                "date_of_loss": date_of_loss,
+                "description_of_loss": description_of_loss,
+                "passport": passport,
+                "claim_amount": claim_amount,
             }
-            add_claim_to_blockchain(claim_data)
 
-            # Store claim ID in session
-            request.session["claim_id"] = claim.id
-
-            # Clear customer ID from session
-            del request.session["customer_id"]
-
-            return redirect("claim_success")
+            return redirect("claim_summary")
 
     return render(request, "claim_details.html")
 
