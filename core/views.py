@@ -59,6 +59,8 @@ def add_claim_to_blockchain(claim):
         goerli = Blockchain.objects.get(network_name="Goerli Testnet")
         block_instance = Block(
             blockchain=goerli,
+            customer=claim.customer,
+            claim=claim,
             block_number=block_number,
             block_hash=block["hash"].hex(),
             previous_block_hash=block["parentHash"].hex(),

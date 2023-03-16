@@ -52,6 +52,8 @@ class Blockchain(models.Model):
 
 class Block(models.Model):
     blockchain = models.ForeignKey(Blockchain, models.PROTECT, null=True, blank=True)
+    customer = models.ForeignKey(Customer, models.PROTECT, null=True, blank=True)
+    claim = models.ForeignKey(Claim, models.PROTECT, null=True, blank=True)
     block_number = models.IntegerField()
     block_hash = models.CharField(max_length=255)
     previous_block_hash = models.CharField(max_length=255)
