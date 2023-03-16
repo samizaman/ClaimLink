@@ -148,13 +148,22 @@ def claim_summary(request):
             return redirect("claim_success")
 
     # If not POST, render the claim summary page with customer and claim details
+
+    gas_price = Web3.toWei("50", "gwei")
+    gas_limit = 210000
+    gas_fee = gas_price * gas_limit
+
+    gas_fee_ether = Web3.fromWei(gas_fee, "ether")
+
     customer_details = request.session["customer_details"]
     claim_details = request.session["claim_details"]
-    return render(
-        request,
-        "claim_summary.html",
-        {"customer_details": customer_details, "claim_details": claim_details},
-    )
+
+    context = {
+        "customer_details": customer_details,
+        "claim_details": claim_details,
+        "gas_fee": gas_fee_ether,
+    }
+    return render(request, "claim_summary.html", context)
 
 
 def claim_success(request):

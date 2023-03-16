@@ -53,7 +53,7 @@
                 </div>
             </div>
 
-            <div class="bg-white shadow rounded-lg p-4 mt-6 mb-12">
+            <div class="bg-white shadow rounded-lg p-4 mt-6 ">
                 <h2 class="text-xl font-semibold mb-6">Claim Details</h2>
                 <div class="grid grid-cols-2 gap-4">
                     <div><span class="font-semibold">Date of Loss:</span> {{ claim_details.date_of_loss }}</div>
@@ -65,8 +65,17 @@
             </div>
         </div>
 
+        <div class="bg-white shadow rounded-lg p-4 mt-6 mb-12">
+            <h2 class="text-xl font-semibold mb-2">Transaction Details</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <span class="font-semibold">Estimated Gas Fee:</span> {{ gas_fee|floatformat:6 }} ETH
+                </div>
+            </div>
+        </div>
 
-        <div class="mt-4">
+
+        <div class="mt-4 mb-12">
             <form method="POST" action="{% url 'claim_summary' %}">
                 {% csrf_token %}
                 <button type="submit" name="submit-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded">
@@ -75,5 +84,5 @@
             </form>
         </div>
     </div>
-    </div>
+
 {% endblock %}
