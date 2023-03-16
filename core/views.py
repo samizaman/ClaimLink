@@ -93,7 +93,7 @@ def claim_details(request):
 
             # Save the uploaded passport file and store the file path
             if passport:
-                passport_path = default_storage.save(passport.name, passport)
+                passport_path = default_storage.save(f"passport_photos/{passport.name}", passport)
             else:
                 passport_path = ""
 
