@@ -138,14 +138,26 @@ def claim_success(request):
 
 
 def view_claim(request):
+    # Initialize claim_data variable to store claim information
     claim_data = None
 
+    # Check if the request method is POST
     if request.method == "POST":
+        # Get the input_data from the POST request
         input_data_hex = request.POST.get("input_data")
+
+        # Remove "0x" prefix from the input data if it exists
         if input_data_hex.startswith("0x"):
             input_data_hex = input_data_hex[2:]
-        input_data = Web3.toText(hexstr=input_data_hex)
-        claim_data = json.loads(input_data)
-        claim_data = json.dumps(claim_data, indent=4)  # Format JSON for better display
 
+        # Convert the input data from hex to text
+        input_data = Web3.toText(hexstr=input_data_hex)
+
+        # Load the input data as a JSON object
+        claim_data = json.loads(input_data)
+
+        # Format the JSON object for better display (4 spaces indentation)
+        claim_data = json.dumps(claim_data, indent=4)
+
+    # Render the view_claim.html template with the claim_data context
     return render(request, "view_claim.html", {"claim_data": claim_data})
