@@ -67,18 +67,14 @@ def personal_details(request):
             dob = request.POST.get("dob")
             gender = request.POST.get("gender")
 
-            # Create new Customer instance and save to database
-            customer = Customer(
-                name=name,
-                email=email,
-                phone_number=phone_number,
-                dob=dob,
-                gender=gender,
-            )
-            customer.save()
-
-            # Store customer ID in session
-            request.session["customer_id"] = customer.id
+            # Store customer details in session
+            request.session["customer_details"] = {
+                "name": name,
+                "email": email,
+                "phone_number": phone_number,
+                "dob": dob,
+                "gender": gender,
+            }
 
             return redirect("claim_details")
 
