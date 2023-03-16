@@ -1,6 +1,7 @@
 import json
 import os
 
+from django.core.files.storage import default_storage
 from django.shortcuts import redirect, render
 from dotenv import load_dotenv
 from web3 import Web3
@@ -90,17 +91,70 @@ def claim_details(request):
             passport = request.FILES.get("passport")
             claim_amount = request.POST.get("claim_amount")
 
+            # Save the uploaded passport file and store the file path
+            if passport:
+                passport_path = default_storage.save(passport.name, passport)
+            else:
+                passport_path = ""
+
             # Store claim details in session
             request.session["claim_details"] = {
                 "date_of_loss": date_of_loss,
                 "description_of_loss": description_of_loss,
-                "passport": passport,
+                "passport": passport_path,
                 "claim_amount": claim_amount,
             }
 
             return redirect("claim_summary")
 
     return render(request, "claim_details.html")
+
+
+def claim_summary(request):
+    if request.method == "POST":
+        if "submit-btn" in request.POST:
+            # Get customer details from the session
+            customer_details = request.session["customer_details"]
+
+            # Create new Customer instance and save to database
+            customer = Customer(**customer_details)
+            customer.save()
+
+            # Get claim details from the session
+            claim_details = request.session["claim_details"]
+
+            # Create new Claim instance and save to database
+            claim = Claim(customer=customer, **claim_details)
+            claim.save()
+
+            # Add claim to blockchain
+            claim_data = {
+                "id": claim.id,
+                "customer_id": claim.customer.id,
+                "date_of_loss": claim.date_of_loss,
+                "description_of_loss": claim.description_of_loss,
+                "claim_amount": str(claim.claim_amount),
+                "created_on": claim.created_on.isoformat(),
+            }
+            add_claim_to_blockchain(claim_data)
+
+            # Store claim ID in session
+            request.session["claim_id"] = claim.id
+
+            # Clear customer and claim details from session
+            del request.session["customer_details"]
+            del request.session["claim_details"]
+
+            return redirect("claim_success")
+
+    # If not POST, render the claim summary page with customer and claim details
+    customer_details = request.session["customer_details"]
+    claim_details = request.session["claim_details"]
+    return render(
+        request,
+        "claim_summary.html",
+        {"customer_details": customer_details, "claim_details": claim_details},
+    )
 
 
 def claim_success(request):
