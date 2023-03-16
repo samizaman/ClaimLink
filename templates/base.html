@@ -18,17 +18,21 @@
         <a href="/" class="text-2xl font-semibold">ClaimLink</a>
 
         <ul class="flex items-center">
-            <li><a href="/"
+            <li>
+                <a href="/"
                    class="p-3 hover:text-blue-500 {% if request.path == '/' %}text-blue-500 font-bold{% endif %}">Home</a>
             </li>
-            <li><a href="/personal-details/"
-                   class="p-3 hover:text-blue-500 {% if request.path == '/personal-details/' %}text-blue-500 font-bold{% endif %}">File
-                a Claim</a></li>
-            <li><a href="/view-claim/"
-                   class="p-3 hover:text-blue-500 {% if request.path == '/view-claim/' %}text-blue-500 font-bold{% endif %}">View
-                Claim</a></li>
+            <li>
+                <a href="/personal-details/"
+                   class="p-3 hover:text-blue-500 {% if '/personal-details' in request.path or '/claim-details' in request.path or '/claim-summary' in request.path %}text-blue-500 font-bold{% endif %}">File
+                    a Claim</a>
+            </li>
+            <li>
+                <a href="/view-claim/"
+                   class="p-3 hover:text-blue-500 {% if '/view-claim' in request.path %}text-blue-500 font-bold{% endif %}">View
+                    Claim</a>
+            </li>
         </ul>
-
     </nav>
 </header>
 <main class="flex-grow">
