@@ -10,7 +10,7 @@ from core.models import Claim, Customer
 
 load_dotenv()
 
-goerli_url = "https://goerli.infura.io/v3/0f045722b7a548d7b170dd4ae314ff3d"
+goerli_url = f"https://goerli.infura.io/v3/{os.getenv('INFURA_PROJECT_ID')}"
 w3 = Web3(Web3.HTTPProvider(goerli_url))
 
 
