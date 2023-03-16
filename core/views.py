@@ -9,10 +9,11 @@ from core.models import Claim, Customer
 
 load_dotenv()
 
+goerli_url = "https://goerli.infura.io/v3/0f045722b7a548d7b170dd4ae314ff3d"
+w3 = Web3(Web3.HTTPProvider(goerli_url))
+
 
 def add_claim_to_blockchain(claim):
-    goerli_url = "https://goerli.infura.io/v3/0f045722b7a548d7b170dd4ae314ff3d"
-    w3 = Web3(Web3.HTTPProvider(goerli_url))
 
     account_address = os.getenv("ACCOUNT_ADDRESS")
     private_key = os.getenv("PRIVATE_KEY")
@@ -138,26 +139,23 @@ def claim_success(request):
 
 
 def view_claim(request):
-    # Initialize claim_data variable to store claim information
     claim_data = None
 
-    # Check if the request method is POST
     if request.method == "POST":
-        # Get the input_data from the POST request
         input_data_hex = request.POST.get("input_data")
-
-        # Remove "0x" prefix from the input data if it exists
         if input_data_hex.startswith("0x"):
             input_data_hex = input_data_hex[2:]
-
-        # Convert the input data from hex to text
         input_data = Web3.toText(hexstr=input_data_hex)
-
-        # Load the input data as a JSON object
         claim_data = json.loads(input_data)
+
+        # Get block information
+        block_number = claim_data.get("block_number", None)
+        if block_number:
+            block = w3.eth.getBlock(block_number)
+            claim_data["block_hash"] = block.hash.hex()
+            claim_data["previous_block_hash"] = block.parentHash.hex()
 
         # Format the JSON object for better display (4 spaces indentation)
         claim_data = json.dumps(claim_data, indent=4)
 
-    # Render the view_claim.html template with the claim_data context
     return render(request, "view_claim.html", {"claim_data": claim_data})
