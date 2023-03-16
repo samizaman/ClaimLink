@@ -14,16 +14,16 @@
         </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                var confettiSettings = { target: 'my-canvas' };
+            document.addEventListener('DOMContentLoaded', function () {
+                var confettiSettings = {target: 'my-canvas'};
                 var confetti = new ConfettiGenerator(confettiSettings);
                 confetti.render();
 
-                setTimeout(function() {
+                setTimeout(function () {
                     confetti.clear();
                 }, 3000);
             });
         </script>
-        <canvas id="my-canvas" class="fixed top-0 left-0 w-screen h-screen z-0"></canvas>
+        <canvas id="my-canvas" class="fixed top-0 left-0 w-screen h-screen z-0 pointer-events-none"></canvas>
     </div>
 {% endblock %}
