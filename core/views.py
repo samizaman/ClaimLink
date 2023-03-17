@@ -33,7 +33,7 @@ def add_claim_to_blockchain(claim):
         "gas": 210000,
         "gasPrice": w3.toWei("50", "gwei"),
         "nonce": w3.eth.getTransactionCount(account_address),
-        "data": w3.toHex(json.dumps(str(claim['id'])).encode("utf-8")),
+        "data": w3.toHex(json.dumps(str(claim["id"])).encode("utf-8")),
     }
 
     # Sign the transaction
@@ -56,8 +56,8 @@ def add_claim_to_blockchain(claim):
         block = w3.eth.getBlock(block_number)
 
         # Get the customer instance using the customer_id
-        customer = Customer.objects.get(id=claim['customer_id'])
-        claim = Claim.objects.get(id=claim['id'])
+        customer = Customer.objects.get(id=claim["customer_id"])
+        claim = Claim.objects.get(id=claim["id"])
 
         # Create and save the Block instance
         goerli = Blockchain.objects.get(network_name="Goerli Testnet")
@@ -207,16 +207,21 @@ def view_claim(request):
         if input_data_hex.startswith("0x"):
             input_data_hex = input_data_hex[2:]
         input_data = Web3.toText(hexstr=input_data_hex)
-        claim_data = json.loads(input_data)
 
-        # Get block information
-        block_number = claim_data.get("block_number", None)
-        if block_number:
-            block = w3.eth.getBlock(block_number)
-            claim_data["block_hash"] = block.hash.hex()
-            claim_data["previous_block_hash"] = block.parentHash.hex()
+        try:
+            claim_data = json.loads(input_data)
+        except json.JSONDecodeError:
+            claim_data = None
 
-        # Format the JSON object for better display (4 spaces indentation)
-        claim_data = json.dumps(claim_data, indent=4)
+        if claim_data and isinstance(claim_data, dict):
+            # Get block information
+            block_number = claim_data.get("block_number", None)
+            if block_number:
+                block = w3.eth.getBlock(block_number)
+                claim_data["block_hash"] = block.hash.hex()
+                claim_data["previous_block_hash"] = block.parentHash.hex()
+
+            # Format the JSON object for better display (4 spaces indentation)
+            claim_data = json.dumps(claim_data, indent=4)
 
     return render(request, "view_claim.html", {"claim_data": claim_data})
