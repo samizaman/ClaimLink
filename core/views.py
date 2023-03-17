@@ -33,7 +33,7 @@ def add_claim_to_blockchain(claim):
         "gas": 210000,
         "gasPrice": w3.toWei("50", "gwei"),
         "nonce": w3.eth.getTransactionCount(account_address),
-        "data": w3.toHex(json.dumps(str(claim["id"])).encode("utf-8")),
+        "data": w3.toHex(json.dumps(claim).encode("utf-8")),
     }
 
     # Sign the transaction
