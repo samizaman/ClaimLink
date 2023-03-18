@@ -97,4 +97,4 @@ class Block(models.Model):
     timestamp = models.DateTimeField()
 
     def __str__(self):
-        return f"Block {self.block_number} - Claim {self.claim.id} - Customer {self.customer.id}"
+        return f"Block {self.block_number}"
