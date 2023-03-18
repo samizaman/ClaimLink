@@ -37,6 +37,13 @@ class Customer(models.Model):
         return self.name
 
 
+class CoverageItem(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class Claim(models.Model):
     customer = models.ForeignKey(Customer, models.PROTECT, null=True, blank=True)
     date_of_loss = models.DateField()
@@ -56,6 +63,7 @@ class Claim(models.Model):
     claim_amount_currency = models.CharField(
         blank=True, max_length=8, choices=CURRENCY_CHOICES, default="AED"
     )
+    coverage_items = models.ManyToManyField(CoverageItem)
 
     def __str__(self):
         return f"{self.claim_reference_number}"

@@ -7,6 +7,7 @@ from core.views import (
     claim_details,
     claim_success,
     personal_details,
+    coverage_items_selection,
     view_claim,
     home,
     claim_summary,
@@ -18,6 +19,7 @@ urlpatterns = [
     path("claim-details/", claim_details, name="claim_details"),
     path("success/", claim_success, name="claim_success"),
     path("view-claim/", view_claim, name="view_claim"),
+    path("coverage-items-selection/", coverage_items_selection, name="coverage_items_selection"),
     path("claim-summary/", claim_summary, name="claim_summary"),
     path("admin/", admin.site.urls),
 ]

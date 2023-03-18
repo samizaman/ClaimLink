@@ -13,6 +13,7 @@ from core.models import (
     Blockchain,
     Claim,
     COUNTRY_CHOICES,
+    CoverageItem,
     CURRENCY_CHOICES,
     Customer,
 )
@@ -115,7 +116,7 @@ def personal_details(request):
 
 def claim_details(request):
     if request.method == "POST":
-        if "next-claim-summary" in request.POST:
+        if "next-coverage-items" in request.POST:
             # Extract claim details from POST request
             date_of_loss = request.POST.get("date_of_loss")
             description_of_loss = request.POST.get("description_of_loss")
@@ -142,12 +143,29 @@ def claim_details(request):
                 "claim_amount_currency": claim_amount_currency,
             }
 
-            return redirect("claim_summary")
+            return redirect("coverage_items_selection")
 
     return render(
         request,
         "claim_details.html",
         {"COUNTRY_CHOICES": COUNTRY_CHOICES, "CURRENCY_CHOICES": CURRENCY_CHOICES},
+    )
+
+
+def coverage_items_selection(request):
+    if request.method == "POST":
+        if "next-claim-summary" in request.POST:
+            coverage_items = request.POST.getlist("coverage_items")
+            request.session["coverage_items"] = coverage_items
+            return redirect("claim_summary")
+
+    # Load previously selected coverage items from session
+    selected_coverage_items = request.session.get("coverage_items", [])
+
+    return render(
+        request,
+        "coverage_items_selection.html",
+        {"selected_coverage_items": selected_coverage_items},
     )
 
 
@@ -166,6 +184,15 @@ def claim_summary(request):
 
             # Create new Claim instance and save to database
             claim = Claim(customer=customer, **claim_details)
+            claim.save()
+
+            # Add selected coverage items to the claim
+            selected_coverage_items = request.session["coverage_items"]
+            for item_name in selected_coverage_items:
+                coverage_item = CoverageItem.objects.get(name=item_name)
+                claim.coverage_items.add(coverage_item)
+
+            # Save the claim with the associated coverage items
             claim.save()
 
             # Add claim to blockchain
