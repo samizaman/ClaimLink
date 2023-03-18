@@ -10,7 +10,9 @@
             </div>
             <div>
                 <div class="text-xl font-medium text-black">Claim Submitted Successfully</div>
-                <div class="mt-2 text-gray-500">Your claim reference number is <strong>{{ claim_reference_number }}</strong>. Please keep this number for your records.</div>
+                <div class="mt-2 text-gray-500">Your claim reference number is
+                    <strong>{{ claim_reference_number }}</strong>. Please keep this number for your records.
+                </div>
             </div>
         </div>
 
@@ -21,10 +23,12 @@
                 confetti.render();
 
                 setTimeout(function () {
-                    confetti.clear();
+                    var canvas = document.getElementById('my-canvas');
+                    canvas.style.opacity = 0;
                 }, 3000);
             });
         </script>
-        <canvas id="my-canvas" class="fixed top-0 left-0 w-screen h-screen z-0 pointer-events-none"></canvas>
+        <canvas id="my-canvas"
+                class="fixed top-0 left-0 w-screen h-screen z-0 pointer-events-none opacity-100 transition-opacity duration-1000"></canvas>
     </div>
 {% endblock %}
