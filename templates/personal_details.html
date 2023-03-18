@@ -52,7 +52,11 @@
 
             <div class="mb-4">
                 <label for="phone_number" class="block mb-2">Phone Number <span class="text-red-600">*</span></label>
-                <input type="tel" name="phone_number" id="phone_number" class="w-full p-2 border rounded" required>
+
+                <div class="inline-flex items-center w-full">
+                    <input type="text" value="🇦🇪 +971" class="w-20 p-2 border rounded mr-2 cursor-not-allowed" readonly>
+                    <input type="tel" name="phone_number" id="phone_number" class="flex-grow p-2 border rounded" required>
+                </div>
             </div>
 
             <div class="mb-4">
