@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.db import models
 from django.utils import timezone
 
@@ -37,9 +39,22 @@ class Claim(models.Model):
     )
     timestamp = models.DateTimeField(default=timezone.now)
     claim_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    claim_reference_number = models.CharField(
+        max_length=255, default="", null=True, blank=True, unique=False
+    )
 
     def __str__(self):
         return f"{self.customer.name} - {self.date_of_loss}"
+
+    @staticmethod
+    def generate_claim_reference_number():
+        unique_id = uuid4().hex[:6].upper()
+        return f"CL-{unique_id}"
+
+    def save(self, *args, **kwargs):
+        if not self.claim_reference_number:
+            self.claim_reference_number = self.generate_claim_reference_number()
+        super().save(*args, **kwargs)
 
 
 class Blockchain(models.Model):
