@@ -76,9 +76,18 @@
                        title="Please upload a valid passport. Submitting a fake or incorrect document is illegal.">
             </div>
 
-            <button type="submit" name="next-coverage-items" class="bg-blue-500 text-white font-bold py-2 px-4 rounded">
-                Next: Coverage Items Selection
-            </button>
+            <div class="mt-6">
+                <button type="button" onclick="window.history.back()"
+                        class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded mr-4 transition duration-200 ease-in-out">
+                    Back: Personal Details
+                </button>
+
+                <button type="submit" name="next-coverage-items"
+                        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition duration-200 ease-in-out">
+                    Next: Coverage Items Selection
+                </button>
+            </div>
+
         </form>
     </div>
 {% endblock %}

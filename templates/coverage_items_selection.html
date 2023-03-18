@@ -31,22 +31,33 @@
             <h3 class="text-lg font-semibold mb-4">Airline Travel Inconvenience</h3>
             <div class="flex space-x-4 mb-8">
                 <div id="flight_delay_or_abandonment"
-                     class="bg-gray-200 text-gray-700 px-6 py-4 rounded-md cursor-pointer">
+                     class="bg-gray-200 hover:bg-green-300 text-gray-700 px-6 py-4 rounded-md cursor-pointer transition duration-200 ease-in-out">
                     <input type="checkbox" name="coverage_items" value="Flight Delay or Abandonment" class="sr-only">
                     Flight Delay or Abandonment
                 </div>
-                <div id="baggage_delay" class="bg-gray-200 text-gray-700 px-6 py-4 rounded-md cursor-pointer">
+                <div id="baggage_delay"
+                     class="bg-gray-200 hover:bg-green-300 text-gray-700 px-6 py-4 rounded-md cursor-pointer transition duration-200 ease-in-out">
                     <input type="checkbox" name="coverage_items" value="Baggage Delay" class="sr-only">
                     Baggage Delay
                 </div>
-                <div id="baggage_loss" class="bg-gray-200 text-gray-700 px-6 py-4 rounded-md cursor-pointer">
+                <div id="baggage_loss"
+                     class="bg-gray-200 hover:bg-green-300 text-gray-700 px-6 py-4 rounded-md cursor-pointer transition duration-200 ease-in-out">
                     <input type="checkbox" name="coverage_items" value="Baggage Loss" class="sr-only">
                     Baggage Loss
                 </div>
             </div>
-            <button type="submit" name="next-claim-summary" class="bg-blue-500 text-white font-bold py-2 px-4 rounded">
-                Next: Summary
-            </button>
+
+            <div class="mt-6">
+                <button type="button" onclick="window.history.back()"
+                        class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded mr-4 transition duration-200 ease-in-out">
+                    Back: Claim Details
+                </button>
+
+                <button type="submit" name="next-claim-summary"
+                        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition duration-200 ease-in-out">
+                    Next: Summary
+                </button>
+            </div>
         </form>
     </div>
 

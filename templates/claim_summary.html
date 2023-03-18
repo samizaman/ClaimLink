@@ -93,7 +93,7 @@
         <div class="mt-4 mb-12">
             <form method="POST" action="{% url 'claim_summary' %}">
                 {% csrf_token %}
-                <button type="submit" name="submit-btn" class="bg-blue-500 text-white font-bold py-2 px-4 rounded">
+                <button type="submit" name="submit-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition duration-200 ease-in-out">
                     Submit Claim
                 </button>
             </form>
