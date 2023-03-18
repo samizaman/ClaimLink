@@ -18,7 +18,8 @@
                 </div>
             </div>
             <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
-                <div style="width:50%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
+                <div style="width:50%"
+                     class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
             </div>
         </div>
         <form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded shadow">
@@ -28,19 +29,37 @@
                 <label for="date_of_loss" class="block mb-2">Date of Loss: <span class="text-red-600">*</span></label>
                 <input type="date" name="date_of_loss" id="date_of_loss" class="w-full p-2 border rounded" required>
             </div>
+
+            <div class="mb-4">
+                <label for="country_of_incident" class="block mb-2">Country of Incident: <span
+                        class="text-red-600">*</span></label>
+                <select name="country_of_incident" id="country_of_incident" class="w-full p-2 border rounded" required>
+                    <option value="" selected disabled>Select a country</option>
+                    {% for country_code, country_name in COUNTRY_CHOICES %}
+                        <option value="{{ country_code }}">{{ country_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <div class="mb-4">
                 <label for="claim_amount" class="block mb-2">Claim Amount: <span class="text-red-600">*</span></label>
-                <input type="text" name="claim_amount" id="claim_amount" class="w-full p-2 border rounded" placeholder="Enter claim amount" required>
+                <input type="text" name="claim_amount" id="claim_amount" class="w-full p-2 border rounded"
+                       placeholder="Enter claim amount" required>
             </div>
 
             <div class="mb-4">
-                <label for="description_of_loss" class="block mb-2">Description of Loss: <span class="text-red-600">*</span></label>
-                <textarea name="description_of_loss" id="description_of_loss" class="w-full p-2 border rounded" rows="4" required></textarea>
+                <label for="description_of_loss" class="block mb-2">Description of Loss: <span
+                        class="text-red-600">*</span></label>
+                <textarea name="description_of_loss" id="description_of_loss" class="w-full p-2 border rounded" rows="4"
+                          required></textarea>
             </div>
 
             <div class="mb-4">
-                <label for="passport" class="block mb-2">Claimant's Passport: <span class="text-red-600">*</span></label>
-                <input type="file" name="passport" id="passport" accept="image/*" class="w-full p-2 border rounded" required title="Please upload a valid passport. Submitting a fake or incorrect document is illegal.">
+                <label for="passport" class="block mb-2">Claimant's Passport: <span
+                        class="text-red-600">*</span></label>
+                <input type="file" name="passport" id="passport" accept="image/*" class="w-full p-2 border rounded"
+                       required
+                       title="Please upload a valid passport. Submitting a fake or incorrect document is illegal.">
             </div>
 
             <button type="submit" name="next-claim-summary" class="bg-blue-500 text-white font-bold py-2 px-4 rounded">

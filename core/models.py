@@ -1,7 +1,10 @@
 from uuid import uuid4
 
+import pycountry
 from django.db import models
 from django.utils import timezone
+
+COUNTRY_CHOICES = [(x.alpha_2, x.name) for x in pycountry.countries]
 
 
 class Customer(models.Model):
@@ -41,6 +44,9 @@ class Claim(models.Model):
     claim_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     claim_reference_number = models.CharField(
         max_length=255, default="", null=True, blank=True, unique=False
+    )
+    country_of_incident = models.CharField(
+        blank=True, max_length=2, choices=COUNTRY_CHOICES
     )
 
     def __str__(self):
