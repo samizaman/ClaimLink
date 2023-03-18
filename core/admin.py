@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Block, Blockchain, Claim, Customer
+from .models import Block, Blockchain, Claim, CoverageItem, Customer
 
 
 class ClaimAdmin(admin.ModelAdmin):
@@ -35,3 +35,4 @@ admin.site.register(Block, BlockAdmin)
 admin.site.register(Blockchain, BlockchainAdmin)
 admin.site.register(Claim, ClaimAdmin)
 admin.site.register(Customer, CustomerAdmin)
+admin.site.register(CoverageItem)
