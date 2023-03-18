@@ -4,7 +4,7 @@ from .models import Block, Blockchain, Claim, Customer
 
 
 class ClaimAdmin(admin.ModelAdmin):
-    list_display = ("customer", "id", "date_of_loss", "timestamp")
+    list_display = ("claim_reference_number", "customer", "id", "date_of_loss", "timestamp")
     list_filter = ("date_of_loss", "timestamp")
     ordering = ("-timestamp",)
 

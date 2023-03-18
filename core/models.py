@@ -44,7 +44,7 @@ class Claim(models.Model):
     )
 
     def __str__(self):
-        return f"{self.customer.name} - {self.date_of_loss}"
+        return f"{self.claim_reference_number}"
 
     @staticmethod
     def generate_claim_reference_number():
