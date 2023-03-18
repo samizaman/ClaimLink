@@ -41,11 +41,25 @@
                 </select>
             </div>
 
-            <div class="mb-4">
-                <label for="claim_amount" class="block mb-2">Claim Amount: <span class="text-red-600">*</span></label>
-                <input type="text" name="claim_amount" id="claim_amount" class="w-full p-2 border rounded"
-                       placeholder="Enter claim amount" required>
+            <div class="flex flex-wrap -mx-4">
+                <div class="w-full md:w-1/2 px-4 mb-4 md:mb-0">
+                    <label for="claim_amount_currency" class="block mb-2">Currency: <span class="text-red-600">*</span></label>
+                    <select name="claim_amount_currency" id="claim_amount_currency" class="w-full p-2 border rounded"
+                            required>
+                        <option value="" selected disabled>Select a currency</option>
+                        {% for currency_code, currency_name in CURRENCY_CHOICES %}
+                            <option value="{{ currency_code }}">{{ currency_code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="w-full md:w-1/2 px-4">
+                    <label for="claim_amount" class="block mb-2">Claim Amount: <span
+                            class="text-red-600">*</span></label>
+                    <input type="text" name="claim_amount" id="claim_amount" class="w-full p-2 border rounded"
+                           placeholder="Enter claim amount" required>
+                </div>
             </div>
+
 
             <div class="mb-4">
                 <label for="description_of_loss" class="block mb-2">Description of Loss: <span

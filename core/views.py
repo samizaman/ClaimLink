@@ -8,7 +8,14 @@ from django.utils import timezone
 from dotenv import load_dotenv
 from web3 import Web3
 
-from core.models import Block, Blockchain, Claim, COUNTRY_CHOICES, Customer
+from core.models import (
+    Block,
+    Blockchain,
+    Claim,
+    COUNTRY_CHOICES,
+    CURRENCY_CHOICES,
+    Customer,
+)
 
 load_dotenv()
 
@@ -115,6 +122,7 @@ def claim_details(request):
             passport = request.FILES.get("passport")
             claim_amount = request.POST.get("claim_amount")
             country_of_incident = request.POST.get("country_of_incident")
+            claim_amount_currency = request.POST.get("claim_amount_currency")
 
             # Save the uploaded passport file and store the file path
             if passport:
@@ -131,11 +139,16 @@ def claim_details(request):
                 "passport": passport_path,
                 "claim_amount": claim_amount,
                 "country_of_incident": country_of_incident,
+                "claim_amount_currency": claim_amount_currency,
             }
 
             return redirect("claim_summary")
 
-    return render(request, "claim_details.html", {"COUNTRY_CHOICES": COUNTRY_CHOICES})
+    return render(
+        request,
+        "claim_details.html",
+        {"COUNTRY_CHOICES": COUNTRY_CHOICES, "CURRENCY_CHOICES": CURRENCY_CHOICES},
+    )
 
 
 def claim_summary(request):

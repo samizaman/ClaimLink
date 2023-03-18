@@ -4,7 +4,12 @@ import pycountry
 from django.db import models
 from django.utils import timezone
 
-COUNTRY_CHOICES = sorted([(x.alpha_2, x.name) for x in pycountry.countries], key=lambda x: x[1])
+COUNTRY_CHOICES = sorted(
+    [(x.alpha_2, x.name) for x in pycountry.countries], key=lambda x: x[1]
+)
+CURRENCY_CHOICES = sorted(
+    [(x.alpha_3, x.name) for x in pycountry.currencies], key=lambda x: x[1]
+)
 
 
 class Customer(models.Model):
@@ -47,6 +52,9 @@ class Claim(models.Model):
     )
     country_of_incident = models.CharField(
         blank=True, max_length=2, choices=COUNTRY_CHOICES
+    )
+    claim_amount_currency = models.CharField(
+        blank=True, max_length=8, choices=CURRENCY_CHOICES, default="AED"
     )
 
     def __str__(self):
