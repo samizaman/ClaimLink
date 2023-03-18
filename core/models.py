@@ -4,7 +4,7 @@ import pycountry
 from django.db import models
 from django.utils import timezone
 
-COUNTRY_CHOICES = [(x.alpha_2, x.name) for x in pycountry.countries]
+COUNTRY_CHOICES = sorted([(x.alpha_2, x.name) for x in pycountry.countries], key=lambda x: x[1])
 
 
 class Customer(models.Model):
