@@ -173,8 +173,28 @@ def required_documents(request):
     if request.method == "POST":
         if "next-claim-summary" in request.POST:
             # Handle form submission and save the uploaded documents
-            pass
-        # If the POST request doesn't match any condition, you can return a redirect, error, or other response.
+            passport = request.FILES.get("passport", None)
+            travel_documents = request.FILES.get("travel_documents", None)
+
+            if passport and travel_documents:
+                # Save the uploaded documents
+                passport_path = default_storage.save(
+                    f"passport_photos/{passport.name}", passport
+                )
+                travel_documents_path = default_storage.save(
+                    "travel_documents/" + travel_documents.name, travel_documents
+                )
+
+                # Redirect the user to the claim_summary page
+                return redirect("claim_summary")
+            else:
+                # Show an error message if any of the files is missing
+                return render(
+                    request,
+                    "required_documents.html",
+                    {"error": "Both passport and travel documents are required."},
+                )
+
     return render(request, "required_documents.html")
 
 
