@@ -17,6 +17,7 @@ from core.models import (
     CURRENCY_CHOICES,
     Customer,
 )
+from core.utils import is_passport_fraud
 
 load_dotenv()
 
@@ -172,12 +173,10 @@ def coverage_items_selection(request):
 def required_documents(request):
     if request.method == "POST":
         if "next-claim-summary" in request.POST:
-            # Handle form submission and save the uploaded documents
             passport = request.FILES.get("passport", None)
             travel_documents = request.FILES.get("travel_documents", None)
 
             if passport and travel_documents:
-                # Save the uploaded documents
                 passport_path = default_storage.save(
                     f"passport_photos/{passport.name}", passport
                 )
@@ -185,10 +184,32 @@ def required_documents(request):
                     "travel_documents/" + travel_documents.name, travel_documents
                 )
 
+                passport_actual_path = default_storage.path(passport_path)
+
+                # Check if the passport is a fraud
+                passport_status = is_passport_fraud(passport_actual_path)
+                if passport_status:  # The document uploaded is fake
+                    print("The passport uploaded is not authentic.")
+                    return render(
+                        request,
+                        "required_documents.html",
+                        {"error": "The passport uploaded is not authentic."},
+                    )
+                elif (
+                    passport_status == "unrecognized"
+                ):  # The document is not recognized
+                    print("The passport uploaded is not recognized.")
+                    return render(
+                        request,
+                        "required_documents.html",
+                        {
+                            "error": "The passport uploaded is not recognized. Please upload a clear and fully visible image."
+                        },
+                    )
+
                 # Redirect the user to the claim_summary page
                 return redirect("claim_summary")
             else:
-                # Show an error message if any of the files is missing
                 return render(
                     request,
                     "required_documents.html",
