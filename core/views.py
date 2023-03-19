@@ -50,9 +50,12 @@ def add_claim_to_blockchain(claim):
 
     # Send the transaction
     transaction_hash = w3.eth.sendRawTransaction(signed_transaction.rawTransaction)
-
-    # Wait for the transaction to be mined
-    transaction_receipt = w3.eth.waitForTransactionReceipt(transaction_hash)
+    try:
+        # Wait for the transaction to be mined
+        transaction_receipt = w3.eth.waitForTransactionReceipt(transaction_hash)
+    except Exception as e:
+        print("Error while waiting for transaction receipt:", e)
+        return False
 
     # Check if the transaction was successful
     if transaction_receipt["status"]:
@@ -61,8 +64,13 @@ def add_claim_to_blockchain(claim):
         )
         # Get the block number from the transaction receipt
         block_number = transaction_receipt["blockNumber"]
-        # Retrieve the block information
-        block = w3.eth.getBlock(block_number)
+
+        try:
+            # Retrieve the block information
+            block = w3.eth.getBlock(block_number)
+        except Exception as e:
+            print("Error while retrieving block information:", e)
+            return False
 
         # Get the customer instance using the customer_id
         customer = Customer.objects.get(id=claim["customer_id"])
