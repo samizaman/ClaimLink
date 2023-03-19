@@ -93,6 +93,12 @@
         <div class="mt-4 mb-12">
             <form method="POST" action="{% url 'claim_summary' %}">
                 {% csrf_token %}
+
+                <button type="button" onclick="window.history.back()"
+                        class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded mr-4 transition duration-200 ease-in-out">
+                    Back: Required Documents
+                </button>
+
                 <button type="submit" name="submit-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition duration-200 ease-in-out">
                     Submit Claim
                 </button>
