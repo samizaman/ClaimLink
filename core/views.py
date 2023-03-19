@@ -120,24 +120,24 @@ def claim_details(request):
             # Extract claim details from POST request
             date_of_loss = request.POST.get("date_of_loss")
             description_of_loss = request.POST.get("description_of_loss")
-            passport = request.FILES.get("passport")
+            # passport = request.FILES.get("passport")
             claim_amount = request.POST.get("claim_amount")
             country_of_incident = request.POST.get("country_of_incident")
             claim_amount_currency = request.POST.get("claim_amount_currency")
 
             # Save the uploaded passport file and store the file path
-            if passport:
-                passport_path = default_storage.save(
-                    f"passport_photos/{passport.name}", passport
-                )
-            else:
-                passport_path = ""
+            # if passport:
+            #     passport_path = default_storage.save(
+            #         f"passport_photos/{passport.name}", passport
+            #     )
+            # else:
+            #     passport_path = ""
 
             # Store claim details in session
             request.session["claim_details"] = {
                 "date_of_loss": date_of_loss,
                 "description_of_loss": description_of_loss,
-                "passport": passport_path,
+                # "passport": passport_path,
                 "claim_amount": claim_amount,
                 "country_of_incident": country_of_incident,
                 "claim_amount_currency": claim_amount_currency,
@@ -154,10 +154,10 @@ def claim_details(request):
 
 def coverage_items_selection(request):
     if request.method == "POST":
-        if "next-claim-summary" in request.POST:
+        if "next-required-documents" in request.POST:
             coverage_items = request.POST.getlist("coverage_items")
             request.session["coverage_items"] = coverage_items
-            return redirect("claim_summary")
+            return redirect("required_documents")
 
     # Load previously selected coverage items from session
     selected_coverage_items = request.session.get("coverage_items", [])
@@ -167,6 +167,15 @@ def coverage_items_selection(request):
         "coverage_items_selection.html",
         {"selected_coverage_items": selected_coverage_items},
     )
+
+
+def required_documents(request):
+    if request.method == "POST":
+        if "next-claim-summary" in request.POST:
+            # Handle form submission and save the uploaded documents
+            pass
+        # If the POST request doesn't match any condition, you can return a redirect, error, or other response.
+    return render(request, "required_documents.html")
 
 
 def claim_summary(request):
