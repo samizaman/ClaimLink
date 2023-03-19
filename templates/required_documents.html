@@ -22,6 +22,8 @@
 
     {% if error %}
         <script>
+            const toastDuration = 8000; // Adjust this value to set the duration for how long the toast stays on the screen (in milliseconds)
+
             function closeErrorToast() {
                 var toast = document.getElementById('error-toast');
                 toast.style.transform = "translateY(100%)";
@@ -32,7 +34,7 @@
             setTimeout(function () {
                 document.getElementById('error-toast').style.transform = "translateY(0)";
             }, 100); // Show the toast with a transition effect
-            setTimeout(closeErrorToast, 5000); // Hide the toast after 5 seconds
+            setTimeout(closeErrorToast, toastDuration); // Hide the toast after 8 seconds
         </script>
     {% endif %}
 
