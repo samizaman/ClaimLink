@@ -45,6 +45,10 @@ class CoverageItem(models.Model):
 
 
 class Claim(models.Model):
+    STATUS_CHOICES = (
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+    )
     customer = models.ForeignKey(Customer, models.PROTECT, null=True, blank=True)
     date_of_loss = models.DateField()
     description_of_loss = models.TextField()
@@ -64,6 +68,12 @@ class Claim(models.Model):
         blank=True, max_length=8, choices=CURRENCY_CHOICES, default="AED"
     )
     coverage_items = models.ManyToManyField(CoverageItem)
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default="approved",
+    )
+    reasons = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.claim_reference_number}"
