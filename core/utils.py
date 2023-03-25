@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from dotenv import load_dotenv
 from idanalyzer import APIError, CoreAPI
@@ -43,6 +44,20 @@ def check_passport_recognition(response):
     return None
 
 
+def check_passport_expiry(response):
+    # Extract the passport expiry date from the response
+    expiry_date_str = response.get("result", {}).get("expiry", "")
+    if expiry_date_str:
+        # Adjust the date format
+        expiry_date_str = expiry_date_str.replace("/", "")
+        expiry_date = datetime.strptime(expiry_date_str, "%Y%m%d")
+
+        # Compare the extracted expiry date with the current date
+        if expiry_date < datetime.now():
+            return "expired_passport"
+    return None
+
+
 def is_passport_fraud(passport_path, user_data):
     if not USE_ID_ANALYZER_API:
         return []  # Assume the document is authentic if not using the API
@@ -59,6 +74,7 @@ def is_passport_fraud(passport_path, user_data):
         violations.append(check_name_mismatch(response, user_data))
         violations.append(check_passport_authentication(response))
         violations.append(check_passport_recognition(response))
+        violations.append(check_passport_expiry(response))
 
         # Filter out any None values from the violations list
         violations = [violation for violation in violations if violation]

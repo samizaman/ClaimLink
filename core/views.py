@@ -222,6 +222,7 @@ def required_documents(request):
                     "name_mismatch": "The name on the passport does not match the provided name.",
                     "not_authentic": "The passport uploaded is not authentic.",
                     "unrecognized": "The passport uploaded is not recognized. Please upload a clear and fully visible image.",
+                    "expired_passport": "The passport is expired.",
                 }
 
                 if passport_status:
