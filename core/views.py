@@ -40,7 +40,7 @@ def add_claim_to_blockchain(claim):
         "to": account_address,
         "value": w3.toWei(0, "ether"),
         "gas": 210000,
-        "gasPrice": w3.toWei("100", "gwei"),
+        "gasPrice": w3.toWei("140", "gwei"),
         "nonce": w3.eth.getTransactionCount(account_address),
         "data": w3.toHex(json.dumps(claim).encode("utf-8")),
     }
@@ -276,7 +276,7 @@ def claim_summary(request):
 
     # If not POST, render the claim summary page with customer and claim details
 
-    gas_price = Web3.toWei("100", "gwei")
+    gas_price = Web3.toWei("140", "gwei")
     gas_limit = 210000
     gas_fee = gas_price * gas_limit
 
