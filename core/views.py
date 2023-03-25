@@ -178,11 +178,23 @@ def coverage_items_selection(request):
     )
 
 
+def create_rejected_claim(customer, reason):
+    claim = Claim(
+        customer=customer,
+        status="rejected",
+        reasons=reason,
+    )
+    claim.save()
+    return claim
+
+
 def required_documents(request):
     if request.method == "POST":
         if "next-claim-summary" in request.POST:
             passport = request.FILES.get("passport", None)
             travel_documents = request.FILES.get("travel_documents", None)
+
+            error_message = ""
 
             if passport and travel_documents:
                 passport_path = default_storage.save(
@@ -194,35 +206,41 @@ def required_documents(request):
 
                 passport_actual_path = default_storage.path(passport_path)
 
+                # Retrieve the user's name from the session
+                customer_details = request.session.get("customer_details", None)
+                print(customer_details)
+                if customer_details:
+                    user_data = {"name": customer_details.get("name", "")}
+                else:
+                    # Handle the case when customer_details is not available in the session
+                    print("Customer details not found in the session.")
+                    user_data = {"name": ""}
+
                 # Check if the passport is a fraud
-                passport_status = is_passport_fraud(passport_actual_path)
-                if passport_status:  # The document uploaded is fake
-                    print("The passport uploaded is not authentic.")
-                    return render(
-                        request,
-                        "required_documents.html",
-                        {"error": "The passport uploaded is not authentic."},
-                    )
-                elif (
-                    passport_status == "unrecognized"
-                ):  # The document is not recognized
-                    print("The passport uploaded is not recognized.")
-                    return render(
-                        request,
-                        "required_documents.html",
-                        {
-                            "error": "The passport uploaded is not recognized. Please upload a clear and fully visible image."
-                        },
+                passport_status = is_passport_fraud(passport_actual_path, user_data)
+                error_messages = {
+                    "name_mismatch": "The name on the passport does not match the provided name.",
+                    "not_authentic": "The passport uploaded is not authentic.",
+                    "unrecognized": "The passport uploaded is not recognized. Please upload a clear and fully visible image.",
+                }
+
+                if passport_status:
+                    error_message = "; ".join(
+                        [error_messages.get(status, "") for status in passport_status]
                     )
 
-                # Redirect the user to the claim_summary page
-                return redirect("claim_summary")
             else:
                 return render(
                     request,
                     "required_documents.html",
                     {"error": "Both passport and travel documents are required."},
                 )
+
+            # Save the reasons to the claims model
+            # (Add this functionality when you're done creating all the rules)
+
+            # Proceed to the next view, pass the error_message to the context
+            return render(request, "claim_summary.html", {"error": error_message})
 
     return render(request, "required_documents.html")
 

@@ -20,9 +20,33 @@ def update_remaining_calls(remaining_calls):
         file.write(str(remaining_calls))
 
 
-def is_passport_fraud(passport_path):
+def check_name_mismatch(response, user_data):
+    extracted_full_name = response.get("result", {}).get("fullName", "").lower()
+    user_name = user_data.get("name", "").lower()
+
+    if extracted_full_name != user_name:
+        return "name_mismatch"
+    return None
+
+
+def check_passport_authentication(response):
+    if response.get("authentication"):
+        authentication_result = response["authentication"]
+        if authentication_result["score"] <= 0.5:
+            return "not_authentic"
+    return None
+
+
+def check_passport_recognition(response):
+    if response.get("authentication") is None:
+        return "unrecognized"
+    return None
+
+
+def is_passport_fraud(passport_path, user_data):
     if not USE_ID_ANALYZER_API:
-        return False  # Assume the document is authentic if not using the API
+        return []  # Assume the document is authentic if not using the API
+
     try:
         coreapi = CoreAPI(os.getenv("IDANALYZER_API_KEY"), API_REGION)
         coreapi.throw_api_exception(True)
@@ -30,24 +54,29 @@ def is_passport_fraud(passport_path):
 
         response = coreapi.scan(document_primary=passport_path)
 
-        # Read the remaining calls value
-        remaining_calls = read_remaining_calls()
+        # Call each rule-checking function and aggregate the results
+        violations = []
+        violations.append(check_name_mismatch(response, user_data))
+        violations.append(check_passport_authentication(response))
+        violations.append(check_passport_recognition(response))
 
-        # Decrement the remaining calls and print the value
+        # Filter out any None values from the violations list
+        violations = [violation for violation in violations if violation]
+
+        # Read the remaining calls value, update and print the value
+        remaining_calls = read_remaining_calls()
         remaining_calls -= 1
         print(f"Remaining calls: {remaining_calls}")
-
-        # Update the remaining calls value in the file
         update_remaining_calls(remaining_calls)
 
         if response.get("authentication"):
             authentication_result = response["authentication"]
             if authentication_result["score"] > 0.5:
-                return False  # The document uploaded is authentic
+                return violations  # The document uploaded is authentic
             else:
-                return True  # The document uploaded is fake
+                return violations  # Return the violated rules
         else:
-            return False  # Authentication not enabled or not available
+            return violations  # Authentication not enabled or not available
 
     except APIError as e:
         details = e.args[0]
@@ -57,9 +86,9 @@ def is_passport_fraud(passport_path):
             )
         )
         if details["code"] == 9:
-            return "unrecognized"
-        return False  # If API returns an error, assume the document is not fake
+            return ["unrecognized"]
+        return []  # If API returns an error, assume the document is not fake
 
     except Exception as e:
         print(e)
-        return False  # If an exception occurs, assume the document is not fake
+        return []  # If an exception occurs, assume the document is not fake
