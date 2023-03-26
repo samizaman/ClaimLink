@@ -58,6 +58,26 @@ def check_passport_expiry(response):
     return None
 
 
+def check_dob_match(response, user_data):
+    # Extract the date of birth from the response
+    dob_str = response.get("result", {}).get("dob", "")
+    if dob_str:
+        # Convert the date string to a datetime object
+        dob_str = dob_str.replace("/", "")
+        dob = datetime.strptime(dob_str, "%Y%m%d")
+
+        # Extract the date of birth provided by the user
+        user_dob_str = user_data.get("dob", "")
+        if user_dob_str:
+            # Convert the user date string to a datetime object
+            user_dob = datetime.strptime(user_dob_str, "%Y-%m-%d")
+
+            # Compare the extracted date of birth with the user's date of birth
+            if dob != user_dob:
+                return "dob_mismatch"
+    return None
+
+
 def is_passport_fraud(passport_path, user_data):
     if not USE_ID_ANALYZER_API:
         return []  # Assume the document is authentic if not using the API
@@ -75,6 +95,7 @@ def is_passport_fraud(passport_path, user_data):
         violations.append(check_passport_authentication(response))
         violations.append(check_passport_recognition(response))
         violations.append(check_passport_expiry(response))
+        violations.append(check_dob_match(response, user_data))
 
         # Filter out any None values from the violations list
         violations = [violation for violation in violations if violation]

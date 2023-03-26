@@ -210,11 +210,14 @@ def required_documents(request):
                 customer_details = request.session.get("customer_details", None)
                 print(customer_details)
                 if customer_details:
-                    user_data = {"name": customer_details.get("name", "")}
+                    user_data = {
+                        "name": customer_details.get("name", ""),
+                        "dob": customer_details.get("dob", ""),
+                    }
                 else:
                     # Handle the case when customer_details is not available in the session
                     print("Customer details not found in the session.")
-                    user_data = {"name": ""}
+                    user_data = {"name": "", "dob": ""}
 
                 # Check if the passport is a fraud
                 passport_status = is_passport_fraud(passport_actual_path, user_data)
@@ -223,12 +226,14 @@ def required_documents(request):
                     "not_authentic": "The passport uploaded is not authentic.",
                     "unrecognized": "The passport uploaded is not recognized. Please upload a clear and fully visible image.",
                     "expired_passport": "The passport is expired.",
+                    "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
                 }
 
                 if passport_status:
                     error_message = "; ".join(
                         [error_messages.get(status, "") for status in passport_status]
                     )
+                    print(f"Error message: {error_message}")
 
             else:
                 return render(
