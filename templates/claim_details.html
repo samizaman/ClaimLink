@@ -27,7 +27,8 @@
             <h2 class="text-2xl font-semibold mb-4">Claim Details</h2>
             <div class="mb-4">
                 <label for="date_of_loss" class="block mb-2">Date of Loss: <span class="text-red-600">*</span></label>
-                <input type="date" name="date_of_loss" id="date_of_loss" class="w-full p-2 border rounded" required>
+                <input type="date" name="date_of_loss" id="date_of_loss" class="w-full p-2 border rounded" required
+                       autofocus>
             </div>
 
             <div class="mb-4">
@@ -65,16 +66,9 @@
                 <label for="description_of_loss" class="block mb-2">Description of Loss: <span
                         class="text-red-600">*</span></label>
                 <textarea name="description_of_loss" id="description_of_loss" class="w-full p-2 border rounded" rows="4"
-                          required></textarea>
+                          required placeholder="Provide a brief description of the loss"></textarea>
             </div>
 
-{#            <div class="mb-4">#}
-{#                <label for="passport" class="block mb-2">Claimant's Passport: <span#}
-{#                        class="text-red-600">*</span></label>#}
-{#                <input type="file" name="passport" id="passport" accept="image/*" class="w-full p-2 border rounded"#}
-{#                       required#}
-{#                       title="Please upload a valid passport. Submitting a fake or incorrect document is illegal.">#}
-{#            </div>#}
 
             <div class="mt-6">
                 <button type="button" onclick="window.history.back()"
