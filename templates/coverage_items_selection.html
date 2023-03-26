@@ -24,7 +24,24 @@
             </div>
         </div>
 
-        <form method="POST" class="bg-white p-8 rounded shadow">
+        <div id="error-toast"
+             class="hidden fixed bottom-4 right-4 bg-red-500 text-white rounded p-4 shadow-md opacity-90 transform transition duration-500 ease-out translate-y-full">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="font-semibold">Error</p>
+                    <p id="error-toast-message"></p>
+                </div>
+                <button class="ml-auto p-1 focus:outline-none" onclick="closeErrorToast()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+
+        <form method="POST" class="bg-white p-8 rounded shadow" onsubmit="return validateCoverageSelection();">
             {% csrf_token %}
             <h2 class="text-2xl font-semibold mb-6">Coverage Item Selection</h2>
             <p class="mb-4">Select the coverage items you want to include in your claim:</p>
@@ -57,9 +74,11 @@
                 </button>
 
                 <button type="submit" name="next-required-documents"
-                        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition duration-200 ease-in-out">
+                        class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition duration-200 ease-in-out"
+                >
                     Next: Required Documents
                 </button>
+
             </div>
         </form>
     </div>
@@ -87,6 +106,34 @@
                 checkbox.checked ^= true;
             });
         });
+
+        document.querySelector('form').addEventListener('submit', (event) => {
+            const checkboxes = document.querySelectorAll('input[name="coverage_items"]');
+            const checkedCheckboxes = Array.from(checkboxes).filter(checkbox => checkbox.checked);
+
+            if (checkedCheckboxes.length === 0) {
+                event.preventDefault();
+                showErrorToast("Please select at least one coverage item.");
+            }
+        });
+
+        function showErrorToast(message) {
+            document.getElementById("error-toast-message").innerText = message;
+            const toast = document.getElementById("error-toast");
+            toast.classList.remove("hidden");
+            toast.style.transform = "translateY(0)";
+            setTimeout(closeErrorToast, 8000); // Hide the toast after 8 seconds
+        }
+
+        function closeErrorToast() {
+            const toast = document.getElementById("error-toast");
+            toast.style.transform = "translateY(100%)";
+            setTimeout(function () {
+                toast.classList.add('hidden');
+            }, 500);
+        }
+
     </script>
+
 
 {% endblock %}
