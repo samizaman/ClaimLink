@@ -213,11 +213,12 @@ def required_documents(request):
                     user_data = {
                         "name": customer_details.get("name", ""),
                         "dob": customer_details.get("dob", ""),
+                        "gender": customer_details.get("gender", ""),
                     }
                 else:
                     # Handle the case when customer_details is not available in the session
                     print("Customer details not found in the session.")
-                    user_data = {"name": "", "dob": ""}
+                    user_data = {"name": "", "dob": "", "gender": ""}
 
                 # Check if the passport is a fraud
                 passport_status = is_passport_fraud(passport_actual_path, user_data)
@@ -227,6 +228,7 @@ def required_documents(request):
                     "unrecognized": "The passport uploaded is not recognized. Please upload a clear and fully visible image.",
                     "expired_passport": "The passport is expired.",
                     "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
+                    "gender_mismatch": "The gender on the passport does not match the provided gender.",
                 }
 
                 if passport_status:

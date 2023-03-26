@@ -77,6 +77,19 @@ def check_dob_match(response, user_data):
                 return "dob_mismatch"
     return None
 
+def check_gender_match(response, user_data):
+    # Extract the gender from the response
+    gender = response.get("result", {}).get("sex", "").lower()
+    if gender:
+        # Extract the gender provided by the user
+        user_gender = user_data.get("gender", "").lower()
+
+        # Compare the extracted gender with the user's gender
+        if gender != user_gender:
+            return "gender_mismatch"
+    return None
+
+
 
 def is_passport_fraud(passport_path, user_data):
     if not USE_ID_ANALYZER_API:
@@ -96,6 +109,7 @@ def is_passport_fraud(passport_path, user_data):
         violations.append(check_passport_recognition(response))
         violations.append(check_passport_expiry(response))
         violations.append(check_dob_match(response, user_data))
+        violations.append(check_gender_match(response, user_data))
 
         # Filter out any None values from the violations list
         violations = [violation for violation in violations if violation]
