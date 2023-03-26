@@ -4,7 +4,8 @@
 
 {% block content %}
     {% if error %}
-        <div id="error-toast" class="fixed bottom-4 right-4 bg-red-500 text-white rounded p-4 shadow-md opacity-90 transform transition duration-500 ease-out translate-y-full">
+        <div id="error-toast"
+             class="fixed bottom-4 right-4 bg-red-500 text-white rounded p-4 shadow-md opacity-90 transform transition duration-500 ease-out translate-y-full">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -27,10 +28,11 @@
             function closeErrorToast() {
                 var toast = document.getElementById('error-toast');
                 toast.style.transform = "translateY(100%)";
-                setTimeout(function() {
+                setTimeout(function () {
                     toast.style.display = 'none';
                 }, 500);
             }
+
             setTimeout(function () {
                 document.getElementById('error-toast').style.transform = "translateY(0)";
             }, 100); // Show the toast with a transition effect
@@ -72,13 +74,26 @@
             </div>
 
             <div class="mb-4">
-                <label for="travel_documents" class="block mb-2">Travel Documents: <span
+                <label for="flight_ticket" class="block mb-2">Flight Ticket: <span
                         class="text-red-600">*</span></label>
-                <input type="file" name="travel_documents" id="travel_documents" accept="image/*"
+                <input type="file" name="flight_ticket" id="flight_ticket" accept="image/*"
                        class="w-full p-2 border rounded"
                        required
-                       title="Please upload valid travel documents. Submitting fake or incorrect documents is illegal.">
+                       title="Please upload a valid flight ticket. Submitting fake or incorrect documents is illegal.">
             </div>
+
+
+            {% if 'Baggage Delay' in selected_coverage_items or 'Baggage Loss' in selected_coverage_items %}
+                <div class="mb-4">
+                    <label for="baggage_tag" class="block mb-2">Baggage Tag: <span
+                            class="text-red-600">*</span></label>
+                    <input type="file" name="baggage_tag" id="baggage_tag" accept="image/*"
+                           class="w-full p-2 border rounded"
+                           required
+                           title="Please upload a valid baggage tag document. Submitting a fake or incorrect document is illegal.">
+                </div>
+            {% endif %}
+
 
             <div class="mt-6">
                 <button type="button" onclick="window.history.back()"

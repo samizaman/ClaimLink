@@ -26,7 +26,6 @@ w3 = Web3(Web3.HTTPProvider(goerli_url))
 
 
 def add_claim_to_blockchain(claim):
-
     account_address = os.getenv("ACCOUNT_ADDRESS")
     private_key = os.getenv("PRIVATE_KEY")
 
@@ -170,6 +169,7 @@ def coverage_items_selection(request):
 
     # Load previously selected coverage items from session
     selected_coverage_items = request.session.get("coverage_items", [])
+    print(f"Selected coverage items: {selected_coverage_items}")
 
     return render(
         request,
@@ -189,8 +189,11 @@ def create_rejected_claim(customer, reason):
 
 
 def required_documents(request):
+    selected_coverage_items = request.session.get("coverage_items", [])
+
     if request.method == "POST":
         if "next-claim-summary" in request.POST:
+
             passport = request.FILES.get("passport", None)
             travel_documents = request.FILES.get("travel_documents", None)
 
@@ -240,7 +243,9 @@ def required_documents(request):
                     )
                     print(f"Passport Verification Error: {passport_verification_error}")
 
-                request.session["passport_verification_error"] = passport_verification_error
+                request.session[
+                    "passport_verification_error"
+                ] = passport_verification_error
                 return redirect("claim_summary")
 
             else:
@@ -250,7 +255,11 @@ def required_documents(request):
                     {"error": "Both passport and travel documents are required."},
                 )
 
-    return render(request, "required_documents.html")
+    return render(
+        request,
+        "required_documents.html",
+        {"selected_coverage_items": selected_coverage_items},
+    )
 
 
 def claim_summary(request):
@@ -270,7 +279,9 @@ def claim_summary(request):
             claim = Claim(customer=customer, **claim_details)
 
             # Check if any passport checks failed
-            passport_verification_error = request.session.get("passport_verification_error", "")
+            passport_verification_error = request.session.get(
+                "passport_verification_error", ""
+            )
 
             if passport_verification_error:
                 # Update claim status and reasons
