@@ -194,7 +194,7 @@ def required_documents(request):
             passport = request.FILES.get("passport", None)
             travel_documents = request.FILES.get("travel_documents", None)
 
-            error_message = ""
+            passport_verification_error = ""
 
             if passport and travel_documents:
                 passport_path = default_storage.save(
@@ -222,7 +222,7 @@ def required_documents(request):
 
                 # Check if the passport is a fraud
                 passport_status = is_passport_fraud(passport_actual_path, user_data)
-                error_messages = {
+                passport_verification_errors = {
                     "name_mismatch": "The name on the passport does not match the provided name.",
                     "not_authentic": "The passport uploaded is not authentic.",
                     "unrecognized": "The passport uploaded is not recognized. Please upload a clear and fully visible image.",
@@ -232,10 +232,16 @@ def required_documents(request):
                 }
 
                 if passport_status:
-                    error_message = "; ".join(
-                        [error_messages.get(status, "") for status in passport_status]
+                    passport_verification_error = "; ".join(
+                        [
+                            passport_verification_errors.get(status, "")
+                            for status in passport_status
+                        ]
                     )
-                    print(f"Error message: {error_message}")
+                    print(f"Passport Verification Error: {passport_verification_error}")
+
+                request.session["passport_verification_error"] = passport_verification_error
+                return redirect("claim_summary")
 
             else:
                 return render(
@@ -243,12 +249,6 @@ def required_documents(request):
                     "required_documents.html",
                     {"error": "Both passport and travel documents are required."},
                 )
-
-            # Save the reasons to the claims model
-            # (Add this functionality when you're done creating all the rules)
-
-            # Proceed to the next view, pass the error_message to the context
-            return render(request, "claim_summary.html", {"error": error_message})
 
     return render(request, "required_documents.html")
 
@@ -266,8 +266,18 @@ def claim_summary(request):
             # Get claim details from the session
             claim_details = request.session["claim_details"]
 
-            # Create new Claim instance and save to database
+            # Create new Claim instance
             claim = Claim(customer=customer, **claim_details)
+
+            # Check if any passport checks failed
+            passport_verification_error = request.session.get("passport_verification_error", "")
+
+            if passport_verification_error:
+                # Update claim status and reasons
+                claim.status = "rejected"
+                claim.reasons = passport_verification_error
+
+            # Save the claim to the database
             claim.save()
 
             # Add selected coverage items to the claim
