@@ -18,7 +18,7 @@ from core.models import (
     Customer,
 )
 from core.utils import is_passport_fraud
-from .forms import PersonalDetailsForm
+from .forms import ClaimDetailsForm, PersonalDetailsForm
 
 load_dotenv()
 
@@ -100,57 +100,36 @@ def home(request):
 
 
 def personal_details(request):
-    form = PersonalDetailsForm()
-
     if request.method == "POST":
         form = PersonalDetailsForm(request.POST)
         if form.is_valid():
-            name = form.cleaned_data["name"]
-            email = form.cleaned_data["email"]
-            phone_number = form.cleaned_data["phone_number"]
-            dob = form.cleaned_data["dob"]
-            gender = form.cleaned_data["gender"]
-
-            request.session["customer_details"] = {
-                "name": name,
-                "email": email,
-                "phone_number": phone_number,
-                "dob": dob,
-                "gender": gender,
-            }
-
+            personal_details = form.cleaned_data
+            # Convert the date object to a string
+            personal_details["dob"] = personal_details["dob"].strftime("%Y-%m-%d")
+            request.session["personal_details"] = personal_details
+            print(f"Personal details: {request.session['personal_details']}")
             return redirect("claim_details")
+    else:
+        form = PersonalDetailsForm()
 
     return render(request, "personal_details.html", {"form": form})
 
 
 def claim_details(request):
     if request.method == "POST":
-        if "next-coverage-items" in request.POST:
-            # Extract claim details from POST request
-            date_of_loss = request.POST.get("date_of_loss")
-            description_of_loss = request.POST.get("description_of_loss")
-            # passport = request.FILES.get("passport")
-            claim_amount = request.POST.get("claim_amount")
-            country_of_incident = request.POST.get("country_of_incident")
-            claim_amount_currency = request.POST.get("claim_amount_currency")
-
-            # Store claim details in session
-            request.session["claim_details"] = {
-                "date_of_loss": date_of_loss,
-                "description_of_loss": description_of_loss,
-                # "passport": passport_path,
-                "claim_amount": claim_amount,
-                "country_of_incident": country_of_incident,
-                "claim_amount_currency": claim_amount_currency,
-            }
-
+        form = ClaimDetailsForm(request.POST)
+        if form.is_valid():
+            request.session["claim_details"] = form.cleaned_data
+            print(f"Claim details: {request.session['claim_details']}")
             return redirect("coverage_items_selection")
+
+    else:
+        form = ClaimDetailsForm()
 
     return render(
         request,
         "claim_details.html",
-        {"COUNTRY_CHOICES": COUNTRY_CHOICES, "CURRENCY_CHOICES": CURRENCY_CHOICES},
+        {"form": form},
     )
 
 

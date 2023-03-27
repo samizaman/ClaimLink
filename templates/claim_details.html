@@ -25,48 +25,38 @@
         <form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded shadow">
             {% csrf_token %}
             <h2 class="text-2xl font-semibold mb-4">Claim Details</h2>
+
             <div class="mb-4">
-                <label for="date_of_loss" class="block mb-2">Date of Loss: <span class="text-red-600">*</span></label>
-                <input type="date" name="date_of_loss" id="date_of_loss" class="w-full p-2 border rounded" required
-                       autofocus>
+                <label for="{{ form.date_of_loss.id_for_label }}" class="block mb-2">{{ form.date_of_loss.label }} <span
+                        class="text-red-600">*</span></label>
+                {{ form.date_of_loss }}
             </div>
 
             <div class="mb-4">
-                <label for="country_of_incident" class="block mb-2">Country of Incident: <span
+                <label for="{{ form.country_of_incident.id_for_label }}"
+                       class="block mb-2">{{ form.country_of_incident.label }} <span
                         class="text-red-600">*</span></label>
-                <select name="country_of_incident" id="country_of_incident" class="w-full p-2 border rounded" required>
-                    <option value="" selected disabled>Select a country</option>
-                    {% for country_code, country_name in COUNTRY_CHOICES %}
-                        <option value="{{ country_code }}">{{ country_name }}</option>
-                    {% endfor %}
-                </select>
+                {{ form.country_of_incident }}
             </div>
 
             <div class="flex flex-wrap -mx-4">
                 <div class="w-full md:w-1/2 px-4 mb-4 md:mb-0">
-                    <label for="claim_amount_currency" class="block mb-2">Currency: <span class="text-red-600">*</span></label>
-                    <select name="claim_amount_currency" id="claim_amount_currency" class="w-full p-2 border rounded"
-                            required>
-                        <option value="" selected disabled>Select a currency</option>
-                        {% for currency_code, currency_name in CURRENCY_CHOICES %}
-                            <option value="{{ currency_code }}">{{ currency_code }}</option>
-                        {% endfor %}
-                    </select>
+                    <label for="{{ form.claim_amount_currency.id_for_label }}"
+                           class="block mb-2">{{ form.claim_amount_currency.label }} <span class="text-red-600">*</span></label>
+                    {{ form.claim_amount_currency }}
                 </div>
                 <div class="w-full md:w-1/2 px-4">
-                    <label for="claim_amount" class="block mb-2">Claim Amount: <span
-                            class="text-red-600">*</span></label>
-                    <input type="text" name="claim_amount" id="claim_amount" class="w-full p-2 border rounded"
-                           placeholder="Enter claim amount" required>
+                    <label for="{{ form.claim_amount.id_for_label }}" class="block mb-2">{{ form.claim_amount.label }}
+                        <span class="text-red-600">*</span></label>
+                    {{ form.claim_amount }}
                 </div>
             </div>
 
-
             <div class="mb-4">
-                <label for="description_of_loss" class="block mb-2">Description of Loss: <span
+                <label for="{{ form.description_of_loss.id_for_label }}"
+                       class="block mb-2">{{ form.description_of_loss.label }} <span
                         class="text-red-600">*</span></label>
-                <textarea name="description_of_loss" id="description_of_loss" class="w-full p-2 border rounded" rows="4"
-                          required placeholder="Provide a brief description of the loss"></textarea>
+                {{ form.description_of_loss }}
             </div>
 
 
