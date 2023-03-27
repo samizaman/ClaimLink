@@ -50,6 +50,9 @@
                 <label for="{{ form.dob.id_for_label }}" class="block mb-2">{{ form.dob.label_tag }} <span
                         class="text-red-600">*</span></label>
                 {{ form.dob }}
+                {% if form.dob.errors %}
+                    <div class="text-red-600">{{ form.dob.errors }}</div>
+                {% endif %}
             </div>
 
             <div class="mb-4">

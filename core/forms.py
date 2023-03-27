@@ -1,5 +1,7 @@
-from django import forms
 import re
+from datetime import date, timedelta
+
+from django import forms
 
 
 class PersonalDetailsForm(forms.Form):
@@ -51,3 +53,15 @@ class PersonalDetailsForm(forms.Form):
         if not re.match("^\d+$", phone_number):
             raise forms.ValidationError("Phone number should only contain numbers")
         return phone_number
+
+    def clean_dob(self):
+        dob = self.cleaned_data.get("dob")
+        today = date.today()
+        min_age = 18
+        min_birthdate = today - timedelta(
+            days=min_age * 365 + min_age // 4
+        )  # Accounts for leap years
+
+        if dob > min_birthdate:
+            raise forms.ValidationError(f"Age must be at least {min_age} years old")
+        return dob
