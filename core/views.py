@@ -119,7 +119,12 @@ def claim_details(request):
     if request.method == "POST":
         form = ClaimDetailsForm(request.POST)
         if form.is_valid():
-            request.session["claim_details"] = form.cleaned_data
+            claim_details = form.cleaned_data
+            # Convert the date object to a string
+            claim_details["date_of_loss"] = claim_details["date_of_loss"].strftime("%Y-%m-%d")
+            # Convert Decimal object to string
+            claim_details["claim_amount"] = str(claim_details["claim_amount"])
+            request.session["claim_details"] = claim_details
             print(f"Claim details: {request.session['claim_details']}")
             return redirect("coverage_items_selection")
 
