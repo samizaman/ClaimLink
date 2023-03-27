@@ -7,6 +7,8 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from dotenv import load_dotenv
 from web3 import Web3
+from .forms import PersonalDetailsForm
+
 
 from core.models import (
     Block,
@@ -99,16 +101,17 @@ def home(request):
 
 
 def personal_details(request):
-    if request.method == "POST":
-        if "next-claims-details" in request.POST:
-            # Extract personal details from POST request
-            name = request.POST.get("name")
-            email = request.POST.get("email")
-            phone_number = request.POST.get("phone_number", "")
-            dob = request.POST.get("dob")
-            gender = request.POST.get("gender")
+    form = PersonalDetailsForm()
 
-            # Store customer details in session
+    if request.method == "POST":
+        form = PersonalDetailsForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            email = form.cleaned_data["email"]
+            phone_number = form.cleaned_data["phone_number"]
+            dob = form.cleaned_data["dob"]
+            gender = form.cleaned_data["gender"]
+
             request.session["customer_details"] = {
                 "name": name,
                 "email": email,
@@ -119,8 +122,7 @@ def personal_details(request):
 
             return redirect("claim_details")
 
-    return render(request, "personal_details.html")
-
+    return render(request, "personal_details.html", {'form': form})
 
 def claim_details(request):
     if request.method == "POST":
@@ -133,13 +135,6 @@ def claim_details(request):
             country_of_incident = request.POST.get("country_of_incident")
             claim_amount_currency = request.POST.get("claim_amount_currency")
 
-            # Save the uploaded passport file and store the file path
-            # if passport:
-            #     passport_path = default_storage.save(
-            #         f"passport_photos/{passport.name}", passport
-            #     )
-            # else:
-            #     passport_path = ""
 
             # Store claim details in session
             request.session["claim_details"] = {

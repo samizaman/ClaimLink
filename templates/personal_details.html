@@ -32,37 +32,42 @@
             <h2 class="text-2xl font-semibold mb-4">Personal Details</h2>
 
             <div class="mb-4">
-                <label for="name" class="block mb-2">Name <span class="text-red-600">*</span></label>
-                <input type="text" name="name" id="name" class="w-full p-2 border rounded" required autofocus>
+                <label for="{{ form.name.id_for_label }}" class="block mb-2">{{ form.name.label_tag }} <span
+                        class="text-red-600">*</span></label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="text-red-600">{{ form.name.errors }}</div>
+                {% endif %}
             </div>
 
             <div class="mb-4">
-                <label for="gender" class="block mb-2">Gender <span class="text-red-600">*</span></label>
-                <select name="gender" id="gender" class="w-full p-2 border rounded" required>
-                    <option value="">Select</option>
-                    <option value="M">Male</option>
-                    <option value="F">Female</option>
-                </select>
+                <label for="{{ form.gender.id_for_label }}" class="block mb-2">{{ form.gender.label_tag }} <span
+                        class="text-red-600">*</span></label>
+                {{ form.gender }}
             </div>
 
             <div class="mb-4">
-                <label for="dob" class="block mb-2">Date of Birth <span class="text-red-600">*</span></label>
-                <input type="date" name="dob" id="dob" class="w-full p-2 border rounded" required>
+                <label for="{{ form.dob.id_for_label }}" class="block mb-2">{{ form.dob.label_tag }} <span
+                        class="text-red-600">*</span></label>
+                {{ form.dob }}
             </div>
 
             <div class="mb-4">
-                <label for="phone_number" class="block mb-2">Phone Number <span class="text-red-600">*</span></label>
-
+                <label for="{{ form.phone_number.id_for_label }}" class="block mb-2">{{ form.phone_number.label_tag }}
+                    <span class="text-red-600">*</span></label>
                 <div class="inline-flex items-center w-full">
                     <input type="text" value="🇦🇪 +971" class="w-20 p-2 border rounded mr-2 cursor-not-allowed" readonly>
-                    <input type="tel" name="phone_number" id="phone_number" class="flex-grow p-2 border rounded"
-                           required>
+                    {{ form.phone_number }}
                 </div>
+                {% if form.phone_number.errors %}
+                    <div class="text-red-600">{{ form.phone_number.errors }}</div>
+                {% endif %}
             </div>
 
             <div class="mb-4">
-                <label for="email" class="block mb-2">Email Address <span class="text-red-600">*</span></label>
-                <input type="email" name="email" id="email" class="w-full p-2 border rounded" required>
+                <label for="{{ form.email.id_for_label }}" class="block mb-2">{{ form.email.label_tag }} <span
+                        class="text-red-600">*</span></label>
+                {{ form.email }}
             </div>
 
             <div class="mt-6">
