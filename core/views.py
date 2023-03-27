@@ -7,8 +7,6 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from dotenv import load_dotenv
 from web3 import Web3
-from .forms import PersonalDetailsForm
-
 
 from core.models import (
     Block,
@@ -20,6 +18,7 @@ from core.models import (
     Customer,
 )
 from core.utils import is_passport_fraud
+from .forms import PersonalDetailsForm
 
 load_dotenv()
 
@@ -122,7 +121,8 @@ def personal_details(request):
 
             return redirect("claim_details")
 
-    return render(request, "personal_details.html", {'form': form})
+    return render(request, "personal_details.html", {"form": form})
+
 
 def claim_details(request):
     if request.method == "POST":
@@ -134,7 +134,6 @@ def claim_details(request):
             claim_amount = request.POST.get("claim_amount")
             country_of_incident = request.POST.get("country_of_incident")
             claim_amount_currency = request.POST.get("claim_amount_currency")
-
 
             # Store claim details in session
             request.session["claim_details"] = {
