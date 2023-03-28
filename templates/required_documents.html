@@ -3,42 +3,6 @@
 {% block title %} Required Documents {% endblock %}
 
 {% block content %}
-    {% if error %}
-        <div id="error-toast"
-             class="fixed bottom-4 right-4 bg-red-500 text-white rounded p-4 shadow-md opacity-90 transform transition duration-500 ease-out translate-y-full">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="font-semibold">Error</p>
-                    <p>{{ error }}</p>
-                </div>
-                <button class="ml-auto p-1 focus:outline-none" onclick="closeErrorToast()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-    {% endif %}
-
-    {% if error %}
-        <script>
-            const toastDuration = 8000; // Adjust this value to set the duration for how long the toast stays on the screen (in milliseconds)
-
-            function closeErrorToast() {
-                var toast = document.getElementById('error-toast');
-                toast.style.transform = "translateY(100%)";
-                setTimeout(function () {
-                    toast.style.display = 'none';
-                }, 500);
-            }
-
-            setTimeout(function () {
-                document.getElementById('error-toast').style.transform = "translateY(0)";
-            }, 100); // Show the toast with a transition effect
-            setTimeout(closeErrorToast, toastDuration); // Hide the toast after 8 seconds
-        </script>
-    {% endif %}
 
     <div class="container mx-auto px-4 py-12">
         <!-- ... progress bar ... -->
