@@ -40,7 +40,7 @@ def add_claim_to_blockchain(claim):
         "to": account_address,
         "value": w3.toWei(0, "ether"),
         "gas": 210000,
-        "gasPrice": w3.toWei("140", "gwei"),
+        "gasPrice": w3.toWei("150", "gwei"),
         "nonce": w3.eth.getTransactionCount(account_address),
         "data": w3.toHex(json.dumps(claim).encode("utf-8")),
     }
@@ -173,17 +173,17 @@ def required_documents(request):
         if "next-claim-summary" in request.POST:
 
             passport = request.FILES.get("passport", None)
-            travel_documents = request.FILES.get("travel_documents", None)
+            # travel_documents = request.FILES.get("travel_documents", None)
 
             passport_verification_error = ""
 
-            if passport and travel_documents:
+            if passport:
                 passport_path = default_storage.save(
                     f"passport_photos/{passport.name}", passport
                 )
-                travel_documents_path = default_storage.save(
-                    "travel_documents/" + travel_documents.name, travel_documents
-                )
+                # travel_documents_path = default_storage.save(
+                #     "travel_documents/" + travel_documents.name, travel_documents
+                # )
 
                 passport_actual_path = default_storage.path(passport_path)
 
@@ -301,7 +301,7 @@ def claim_summary(request):
 
     # If not POST, render the claim summary page with customer and claim details
 
-    gas_price = Web3.toWei("140", "gwei")
+    gas_price = Web3.toWei("150", "gwei")
     gas_limit = 210000
     gas_fee = gas_price * gas_limit
 
