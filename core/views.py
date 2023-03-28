@@ -12,13 +12,11 @@ from core.models import (
     Block,
     Blockchain,
     Claim,
-    COUNTRY_CHOICES,
     CoverageItem,
-    CURRENCY_CHOICES,
     Customer,
 )
 from core.utils import is_passport_fraud
-from .forms import ClaimDetailsForm, PersonalDetailsForm
+from .forms import ClaimDetailsForm, CoverageItemsSelectionForm, PersonalDetailsForm
 
 load_dotenv()
 
@@ -121,7 +119,9 @@ def claim_details(request):
         if form.is_valid():
             claim_details = form.cleaned_data
             # Convert the date object to a string
-            claim_details["date_of_loss"] = claim_details["date_of_loss"].strftime("%Y-%m-%d")
+            claim_details["date_of_loss"] = claim_details["date_of_loss"].strftime(
+                "%Y-%m-%d"
+            )
             # Convert Decimal object to string
             claim_details["claim_amount"] = str(claim_details["claim_amount"])
             request.session["claim_details"] = claim_details
@@ -140,8 +140,9 @@ def claim_details(request):
 
 def coverage_items_selection(request):
     if request.method == "POST":
-        if "next-required-documents" in request.POST:
-            coverage_items = request.POST.getlist("coverage_items")
+        form = CoverageItemsSelectionForm(request.POST)
+        if form.is_valid():
+            coverage_items = form.cleaned_data["coverage_items"]
             request.session["coverage_items"] = coverage_items
             return redirect("required_documents")
 
@@ -149,10 +150,14 @@ def coverage_items_selection(request):
     selected_coverage_items = request.session.get("coverage_items", [])
     print(f"Selected coverage items: {selected_coverage_items}")
 
+    form = CoverageItemsSelectionForm(
+        initial={"coverage_items": selected_coverage_items}
+    )
+
     return render(
         request,
         "coverage_items_selection.html",
-        {"selected_coverage_items": selected_coverage_items},
+        {"form": form, "selected_coverage_items": selected_coverage_items},
     )
 
 

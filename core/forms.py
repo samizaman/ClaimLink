@@ -111,3 +111,16 @@ class ClaimDetailsForm(forms.Form):
             }
         )
     )
+
+
+class CoverageItemsSelectionForm(forms.Form):
+    COVERAGE_CHOICES = [
+        ("Flight Delay or Abandonment", "Flight Delay or Abandonment"),
+        ("Baggage Delay", "Baggage Delay"),
+        ("Baggage Loss", "Baggage Loss"),
+    ]
+
+    coverage_items = forms.MultipleChoiceField(
+        choices=COVERAGE_CHOICES,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "hidden"}),
+    )
