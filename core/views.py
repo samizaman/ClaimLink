@@ -310,7 +310,7 @@ def claim_summary(request):
             request.session["claim_id"] = claim.id
 
             # Clear customer and claim details from session
-            del request.session["customer_details"]
+            del request.session["personal_details"]
             del request.session["claim_details"]
 
             return redirect("claim_success")
