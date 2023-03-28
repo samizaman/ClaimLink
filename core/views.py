@@ -200,7 +200,7 @@ def required_documents(request):
                 passport_actual_path = default_storage.path(passport_path)
 
                 # Retrieve the user's name from the session
-                customer_details = request.session.get("customer_details", None)
+                customer_details = request.session.get("personal_details", None)
                 print(customer_details)
                 if customer_details:
                     user_data = {
@@ -260,14 +260,14 @@ def claim_summary(request):
     if request.method == "POST":
         if "submit-btn" in request.POST:
             # Get customer details from the session
-            customer_details = request.session["customer_details"]
+            customer_details = request.session.get("personal_details", None)
 
             # Create new Customer instance and save to database
             customer = Customer(**customer_details)
             customer.save()
 
             # Get claim details from the session
-            claim_details = request.session["claim_details"]
+            claim_details = request.session.get("claim_details", None)
 
             # Create new Claim instance
             claim = Claim(customer=customer, **claim_details)
@@ -323,8 +323,8 @@ def claim_summary(request):
 
     gas_fee_ether = Web3.fromWei(gas_fee, "ether")
 
-    customer_details = request.session["customer_details"]
-    claim_details = request.session["claim_details"]
+    customer_details = request.session.get("personal_details", None)
+    claim_details = request.session.get("claim_details", None)
 
     context = {
         "customer_details": customer_details,
