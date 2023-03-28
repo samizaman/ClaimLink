@@ -66,31 +66,22 @@
             <h2 class="text-2xl font-semibold mb-4">Required Documents</h2>
 
             <div class="mb-4">
-                <label for="passport" class="block mb-2">Claimant's Passport: <span
+                <label for="{{ form.passport.auto_id }}" class="block mb-2">Claimant's Passport: <span
                         class="text-red-600">*</span></label>
-                <input type="file" name="passport" id="passport" accept="image/*" class="w-full p-2 border rounded"
-                       required
-                       title="Please upload a valid passport. Submitting a fake or incorrect document is illegal.">
+                {{ form.passport }}
             </div>
 
             <div class="mb-4">
-                <label for="flight_ticket" class="block mb-2">Flight Ticket: <span
+                <label for="{{ form.flight_ticket.auto_id }}" class="block mb-2">Flight Ticket: <span
                         class="text-red-600">*</span></label>
-                <input type="file" name="flight_ticket" id="flight_ticket" accept="image/*"
-                       class="w-full p-2 border rounded"
-                       required
-                       title="Please upload a valid flight ticket. Submitting fake or incorrect documents is illegal.">
+                {{ form.flight_ticket }}
             </div>
-
 
             {% if 'Baggage Delay' in selected_coverage_items or 'Baggage Loss' in selected_coverage_items %}
                 <div class="mb-4">
-                    <label for="baggage_tag" class="block mb-2">Baggage Tag: <span
+                    <label for="{{ form.baggage_tag.auto_id }}" class="block mb-2">Baggage Tag: <span
                             class="text-red-600">*</span></label>
-                    <input type="file" name="baggage_tag" id="baggage_tag" accept="image/*"
-                           class="w-full p-2 border rounded"
-                           required
-                           title="Please upload a valid baggage tag document. Submitting a fake or incorrect document is illegal.">
+                    {{ form.baggage_tag }}
                 </div>
             {% endif %}
 

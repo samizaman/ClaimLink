@@ -16,7 +16,12 @@ from core.models import (
     Customer,
 )
 from core.utils import is_passport_fraud
-from .forms import ClaimDetailsForm, CoverageItemsSelectionForm, PersonalDetailsForm
+from .forms import (
+    ClaimDetailsForm,
+    CoverageItemsSelectionForm,
+    PersonalDetailsForm,
+    RequiredDocumentsForm,
+)
 
 load_dotenv()
 
@@ -171,15 +176,91 @@ def create_rejected_claim(customer, reason):
     return claim
 
 
+# def required_documents(request):
+#     selected_coverage_items = request.session.get("coverage_items", [])
+#
+#     if request.method == "POST":
+#         if "next-claim-summary" in request.POST:
+#
+#             passport = request.FILES.get("passport", None)
+#             # travel_documents = request.FILES.get("travel_documents", None)
+#
+#             passport_verification_error = ""
+#
+#             if passport:
+#                 passport_path = default_storage.save(
+#                     f"passport_photos/{passport.name}", passport
+#                 )
+#                 # travel_documents_path = default_storage.save(
+#                 #     "travel_documents/" + travel_documents.name, travel_documents
+#                 # )
+#
+#                 passport_actual_path = default_storage.path(passport_path)
+#
+#                 # Retrieve the user's name from the session
+#                 customer_details = request.session.get("customer_details", None)
+#                 print(customer_details)
+#                 if customer_details:
+#                     user_data = {
+#                         "name": customer_details.get("name", ""),
+#                         "dob": customer_details.get("dob", ""),
+#                         "gender": customer_details.get("gender", ""),
+#                     }
+#                 else:
+#                     # Handle the case when customer_details is not available in the session
+#                     print("Customer details not found in the session.")
+#                     user_data = {"name": "", "dob": "", "gender": ""}
+#
+#                 # Check if the passport is a fraud
+#                 passport_status = is_passport_fraud(passport_actual_path, user_data)
+#                 passport_verification_errors = {
+#                     "name_mismatch": "The name on the passport does not match the provided name.",
+#                     "not_authentic": "The passport uploaded is not authentic.",
+#                     "unrecognized": "The passport uploaded is not recognized. Please upload a clear and fully visible image.",
+#                     "expired_passport": "The passport is expired.",
+#                     "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
+#                     "gender_mismatch": "The gender on the passport does not match the provided gender.",
+#                 }
+#
+#                 if passport_status:
+#                     passport_verification_error = "; ".join(
+#                         [
+#                             passport_verification_errors.get(status, "")
+#                             for status in passport_status
+#                         ]
+#                     )
+#                     print(f"Passport Verification Error: {passport_verification_error}")
+#
+#                 request.session[
+#                     "passport_verification_error"
+#                 ] = passport_verification_error
+#                 return redirect("claim_summary")
+#
+#             else:
+#                 return render(
+#                     request,
+#                     "required_documents.html",
+#                     {"error": "Both passport and travel documents are required."},
+#                 )
+#
+#     return render(
+#         request,
+#         "required_documents.html",
+#         {"selected_coverage_items": selected_coverage_items},
+#     )
+
+
 def required_documents(request):
     selected_coverage_items = request.session.get("coverage_items", [])
 
     if request.method == "POST":
-        if "next-claim-summary" in request.POST:
+        form = RequiredDocumentsForm(request.POST, request.FILES)
+        if form.is_valid():
+            passport = form.cleaned_data["passport"]
+            flight_ticket = form.cleaned_data["flight_ticket"]
+            baggage_tag = form.cleaned_data.get("baggage_tag", None)
 
-            passport = request.FILES.get("passport", None)
-            # travel_documents = request.FILES.get("travel_documents", None)
-
+            # Your existing logic for processing the uploaded files...
             passport_verification_error = ""
 
             if passport:
@@ -231,17 +312,21 @@ def required_documents(request):
                 ] = passport_verification_error
                 return redirect("claim_summary")
 
-            else:
-                return render(
-                    request,
-                    "required_documents.html",
-                    {"error": "Both passport and travel documents are required."},
-                )
+            return redirect("claim_summary")
+        else:
+            error_message = "Please make sure all required fields are filled correctly."
+    else:
+        form = RequiredDocumentsForm()
+        error_message = None
 
     return render(
         request,
         "required_documents.html",
-        {"selected_coverage_items": selected_coverage_items},
+        {
+            "form": form,
+            "selected_coverage_items": selected_coverage_items,
+            "error": error_message,
+        },
     )
 
 

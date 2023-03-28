@@ -1,5 +1,4 @@
 import re
-from datetime import date, timedelta
 
 from django import forms
 
@@ -123,4 +122,19 @@ class CoverageItemsSelectionForm(forms.Form):
     coverage_items = forms.MultipleChoiceField(
         choices=COVERAGE_CHOICES,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "hidden"}),
+    )
+
+
+class RequiredDocumentsForm(forms.Form):
+    passport = forms.ImageField(
+        required=True,
+        widget=forms.FileInput(attrs={"class": "w-full p-2 border rounded"}),
+    )
+    flight_ticket = forms.ImageField(
+        required=True,
+        widget=forms.FileInput(attrs={"class": "w-full p-2 border rounded"}),
+    )
+    baggage_tag = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={"class": "w-full p-2 border rounded"}),
     )
