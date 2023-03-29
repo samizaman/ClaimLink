@@ -38,12 +38,17 @@ def add_claim_to_blockchain(claim):
         print("Error: Could not connect to the Ethereum network.")
         return False
 
+    # Fetch the current gas price from the Ethereum network
+    current_gas_price = w3.eth.gasPrice
+    gas_price_multiplier = 1.2  # Adjust this value as needed
+    adjusted_gas_price = int(current_gas_price * gas_price_multiplier)
+
     # Set up the transaction details
     transaction = {
         "to": account_address,
         "value": w3.toWei(0, "ether"),
         "gas": 210000,
-        "gasPrice": w3.toWei("150", "gwei"),
+        "gasPrice": adjusted_gas_price,
         "nonce": w3.eth.getTransactionCount(account_address),
         "data": w3.toHex(json.dumps(claim).encode("utf-8")),
     }
@@ -317,9 +322,11 @@ def claim_summary(request):
 
     # If not POST, render the claim summary page with customer and claim details
 
-    gas_price = Web3.toWei("150", "gwei")
-    gas_limit = 210000
-    gas_fee = gas_price * gas_limit
+    current_gas_price = w3.eth.gasPrice
+    gas_price_multiplier = 1.2  # Adjust this value as needed
+    adjusted_gas_price = int(current_gas_price * gas_price_multiplier)
+
+    gas_fee = adjusted_gas_price * 210000
 
     gas_fee_ether = Web3.fromWei(gas_fee, "ether")
 
