@@ -12,7 +12,6 @@ from core.views import (
     home,
     personal_details,
     required_documents,
-    # view_claim,
 )
 
 urlpatterns = [
@@ -20,12 +19,7 @@ urlpatterns = [
     path("personal-details/", personal_details, name="personal_details"),
     path("claim-details/", claim_details, name="claim_details"),
     path("success/", claim_success, name="claim_success"),
-    # path("view-claim/", view_claim, name="view_claim"),
-    path(
-        "coverage-items-selection/",
-        coverage_items_selection,
-        name="coverage_items_selection",
-    ),
+    path("coverage-items-selection/", coverage_items_selection, name="coverage_items_selection"),
     path("required-documents/", required_documents, name="required_documents"),
     path("claim-summary/", claim_summary, name="claim_summary"),
     path("admin_view_claim/", admin_view_claim, name="admin_view_claim"),
