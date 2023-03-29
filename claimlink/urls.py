@@ -22,7 +22,7 @@ urlpatterns = [
     path("coverage-items-selection/", coverage_items_selection, name="coverage_items_selection"),
     path("required-documents/", required_documents, name="required_documents"),
     path("claim-summary/", claim_summary, name="claim_summary"),
-    path("admin_view_claim/", admin_view_claim, name="admin_view_claim"),
+    path("admin-view-claim/", admin_view_claim, name="admin_view_claim"),
     path("admin/", admin.site.urls),
 ]
 
