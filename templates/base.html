@@ -51,11 +51,11 @@
                 <a href="/"
                    class="p-3 hover:text-blue-500 {% if request.path == '/' %}text-blue-500 font-bold{% endif %}">Home</a>
             </li>
-            <li>
-                <a href="/view-claim/"
-                   class="p-3 hover:text-blue-500 {% if '/view-claim' in request.path %}text-blue-500 font-bold{% endif %}">View
-                    Claim</a>
-            </li>
+{#            <li>#}
+{#                <a href="/view-claim/"#}
+{#                   class="p-3 hover:text-blue-500 {% if '/view-claim' in request.path %}text-blue-500 font-bold{% endif %}">View#}
+{#                    Claim</a>#}
+{#            </li>#}
             <li class="p-4 md:p-0">
                 <a href="{% url 'personal_details' %}"
                    class="get-started-button px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200">Get
