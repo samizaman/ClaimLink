@@ -357,27 +357,6 @@ def claim_success(request):
     )
 
 
-def get_claim_data_from_blockchain(input_data_hex):
-    if input_data_hex.startswith("0x"):
-        input_data_hex = input_data_hex[2:]
-    input_data = Web3.toText(hexstr=input_data_hex)
-
-    try:
-        claim_data = json.loads(input_data)
-    except json.JSONDecodeError:
-        claim_data = None
-
-    if claim_data and isinstance(claim_data, dict):
-        # Get block information
-        block_number = claim_data.get("block_number", None)
-        if block_number:
-            block = w3.eth.getBlock(block_number)
-            claim_data["block_hash"] = block.hash.hex()
-            claim_data["previous_block_hash"] = block.parentHash.hex()
-
-    return claim_data
-
-
 @staff_member_required
 def admin_view_claim(request):
     claim_data = None
