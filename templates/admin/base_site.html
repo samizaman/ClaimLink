@@ -1,5 +1,9 @@
 {% extends "admin/base.html" %}
 
+{% block branding %}
+    <h1 id="site-name"><a href="{% url 'admin:index' %}">Django administration</a></h1>
+{% endblock %}
+
 {% block userlinks %}
     {{ block.super }}
     / <a href="{% url 'admin_view_claim' %}">View Claim</a>
