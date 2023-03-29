@@ -1,25 +1,6 @@
-import json
-
 from django.contrib import admin
-from django.http import HttpResponse
 
 from .models import Block, Blockchain, Claim, CoverageItem, Customer
-from .views import get_claim_data_from_blockchain
-
-
-def view_claim_data_on_blockchain(modeladmin, request, queryset):
-    # Assuming each claim has a unique input_data_hex
-    input_data_hex = queryset.first().input_data_hex
-    claim_data = get_claim_data_from_blockchain(input_data_hex)
-
-    if claim_data:
-        claim_data = json.dumps(claim_data, indent=4)
-        return HttpResponse("<pre>" + claim_data + "</pre>")
-    else:
-        return HttpResponse("Error: Could not retrieve claim data from the blockchain.")
-
-
-view_claim_data_on_blockchain.short_description = "View Claim Data on Blockchain"
 
 
 class ClaimAdmin(admin.ModelAdmin):
@@ -32,7 +13,6 @@ class ClaimAdmin(admin.ModelAdmin):
     )
     list_filter = ("date_of_loss", "timestamp")
     ordering = ("-timestamp",)
-    actions = [view_claim_data_on_blockchain]
 
 
 class CustomerAdmin(admin.ModelAdmin):
