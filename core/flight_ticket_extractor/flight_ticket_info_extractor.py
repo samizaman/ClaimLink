@@ -170,11 +170,11 @@ def extract_ticket_info(file_path):
             # Choose the appropriate configuration file based on flight_name
             if "Emirates" in flight_name:
                 print("===emirates===")
-                config_path = "emirates_ticket_config.json"
+                config_path = "configs/emirates_ticket_config.json"
                 ticket_type = "emirates"
             elif "flynas" in flight_name:
                 print("===flynas===")
-                config_path = "flynas_ticket_config.json"
+                config_path = "configs/flynas_ticket_config.json"
                 ticket_type = "flynas"
             else:
                 print("Unknown flight name. Please provide a valid ticket.")
@@ -211,10 +211,10 @@ def extract_ticket_info(file_path):
 
             # Choose the appropriate configuration file based on flight_name
             if "Emirates" in flight_name:
-                config_path = "emirates_ticket_config.json"
+                config_path = "configs/emirates_ticket_config.json"
                 ticket_type = "emirates"
             elif "flynas" in flight_name:
-                config_path = "flynas_ticket_config.json"
+                config_path = "configs/flynas_ticket_config.json"
                 ticket_type = "flynas"
             else:
                 print("Unknown flight name. Please provide a valid ticket.")
