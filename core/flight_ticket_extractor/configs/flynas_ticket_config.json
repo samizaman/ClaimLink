@@ -1,0 +1,29 @@
+{
+  "regions": {
+    "flight_name": {
+      "coordinates": [1004, 424, 74, 44],
+      "ocr_config": "--psm 6",
+      "processing_function": ""
+    },
+    "booking_reference_number": {
+      "coordinates": [205, 602, 354, 113],
+      "ocr_config": "--psm 6",
+      "processing_function": "process_booking_reference_number"
+    },
+    "name": {
+      "coordinates": [104, 1642, 331, 48],
+      "ocr_config": "--psm 6",
+      "processing_function": "process_name"
+    },
+    "departure_date": {
+      "coordinates": [460, 1471, 285, 39],
+      "ocr_config": "--psm 6",
+      "processing_function": "process_date"
+    },
+    "arrival_date": {
+      "coordinates": [1006, 1477, 296, 37],
+      "ocr_config": "--psm 6",
+      "processing_function": "process_date"
+    }
+  }
+}
