@@ -169,12 +169,14 @@ def extract_ticket_info(file_path):
 
             # Choose the appropriate configuration file based on flight_name
             if "Emirates" in flight_name:
-                print("===emirates===")
-                config_path = "configs/emirates_ticket_config.json"
+                config_path = os.path.join(
+                    os.path.dirname(__file__), "configs", "emirates_ticket_config.json"
+                )
                 ticket_type = "emirates"
             elif "flynas" in flight_name:
-                print("===flynas===")
-                config_path = "configs/flynas_ticket_config.json"
+                config_path = os.path.join(
+                    os.path.dirname(__file__), "configs", "flynas_ticket_config.json"
+                )
                 ticket_type = "flynas"
             else:
                 print("Unknown flight name. Please provide a valid ticket.")
@@ -187,9 +189,6 @@ def extract_ticket_info(file_path):
                 )
                 return
             extracted_data = process_document(image, config, ticket_type)
-            for key, value in extracted_data.items():
-                print(f"{key}: {value}")
-            print()
         else:
             print("No images found in the PDF.")
     else:
@@ -211,10 +210,14 @@ def extract_ticket_info(file_path):
 
             # Choose the appropriate configuration file based on flight_name
             if "Emirates" in flight_name:
-                config_path = "configs/emirates_ticket_config.json"
+                config_path = os.path.join(
+                    os.path.dirname(__file__), "configs", "emirates_ticket_config.json"
+                )
                 ticket_type = "emirates"
             elif "flynas" in flight_name:
-                config_path = "configs/flynas_ticket_config.json"
+                config_path = os.path.join(
+                    os.path.dirname(__file__), "configs", "flynas_ticket_config.json"
+                )
                 ticket_type = "flynas"
             else:
                 print("Unknown flight name. Please provide a valid ticket.")
@@ -227,8 +230,6 @@ def extract_ticket_info(file_path):
                 )
                 return
             extracted_data = process_document(image, config, ticket_type)
-            for key, value in extracted_data.items():
-                print(f"{key}: {value}")
         else:
             print("Error reading the input image.")
     return extracted_data
