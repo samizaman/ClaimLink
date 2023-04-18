@@ -17,6 +17,7 @@ from core.models import (
     Customer,
 )
 from core.utils import is_passport_fraud
+from .flight_ticket_extractor.flight_ticket_info_extractor import extract_ticket_info
 from .forms import (
     ClaimDetailsForm,
     CoverageItemsSelectionForm,
@@ -191,6 +192,21 @@ def required_documents(request):
             passport = form.cleaned_data["passport"]
             flight_ticket = form.cleaned_data["flight_ticket"]
             baggage_tag = form.cleaned_data.get("baggage_tag", None)
+
+            # Save the uploaded flight_ticket to a temporary location
+            flight_ticket_path = default_storage.save(
+                f"temp/{flight_ticket.name}", flight_ticket
+            )
+            flight_ticket_temp_path = default_storage.path(flight_ticket_path)
+
+            extracted_data = extract_ticket_info(flight_ticket_temp_path)
+            # Print the extracted data
+            print("Extracted data:")
+            for key, value in extracted_data.items():
+                print(f"{key}: {value}")
+
+            # Remove the temporary flight_ticket file after processing
+            os.remove(flight_ticket_temp_path)
 
             # Your existing logic for processing the uploaded files...
             passport_verification_error = ""
