@@ -47,7 +47,7 @@ def prepare_claim_transaction(claim):
         "to": account_address,
         "value": w3.to_wei(0, "ether"),
         "maxFeePerGas": adjusted_gas_price,
-        "maxPriorityFeePerGas": adjusted_gas_price,  # You can also use a separate value for this field
+        "maxPriorityFeePerGas": adjusted_gas_price,
         "nonce": w3.eth.get_transaction_count(w3.to_checksum_address(account_address)),
         "chainId": chain_id,
         "data": w3.to_hex(json.dumps(claim).encode("utf-8")),
