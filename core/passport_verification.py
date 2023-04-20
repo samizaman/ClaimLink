@@ -77,6 +77,7 @@ def check_dob_match(response, user_data):
                 return "dob_mismatch"
     return None
 
+
 def check_gender_match(response, user_data):
     # Extract the gender from the response
     gender = response.get("result", {}).get("sex", "").lower()
@@ -88,7 +89,6 @@ def check_gender_match(response, user_data):
         if gender != user_gender:
             return "gender_mismatch"
     return None
-
 
 
 def is_passport_fraud(passport_path, user_data):

@@ -12,7 +12,7 @@ from core.models import (
     CoverageItem,
     Customer,
 )
-from core.utils import is_passport_fraud
+from core.passport_verification import is_passport_fraud
 from .blockchain import add_claim_to_blockchain, prepare_claim_transaction
 from .flight_ticket_extractor.flight_ticket_info_extractor import extract_ticket_info
 from .forms import (
