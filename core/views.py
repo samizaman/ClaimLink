@@ -31,38 +31,54 @@ goerli_url = f"https://goerli.infura.io/v3/{os.getenv('INFURA_PROJECT_ID')}"
 w3 = Web3(Web3.HTTPProvider(goerli_url))
 
 
-def add_claim_to_blockchain(claim):
+def prepare_claim_transaction(claim):
     account_address = os.getenv("ACCOUNT_ADDRESS")
-    private_key = os.getenv("PRIVATE_KEY")
-
-    # Check if connected to Ethereum network
-    if not w3.isConnected():
-        print("Error: Could not connect to the Ethereum network.")
-        return False
 
     # Fetch the current gas price from the Ethereum network
-    current_gas_price = w3.eth.gasPrice
+    current_gas_price = w3.eth.gas_price
     gas_price_multiplier = 1.2  # Adjust this value as needed
     adjusted_gas_price = int(current_gas_price * gas_price_multiplier)
+
+    # Get the chain ID
+    chain_id = w3.eth.chain_id
 
     # Set up the transaction details
     transaction = {
         "to": account_address,
-        "value": w3.toWei(0, "ether"),
-        "gas": 210000,
-        "gasPrice": adjusted_gas_price,
-        "nonce": w3.eth.getTransactionCount(account_address),
-        "data": w3.toHex(json.dumps(claim).encode("utf-8")),
+        "value": w3.to_wei(0, "ether"),
+        "maxFeePerGas": adjusted_gas_price,
+        "maxPriorityFeePerGas": adjusted_gas_price,  # You can also use a separate value for this field
+        "nonce": w3.eth.get_transaction_count(w3.to_checksum_address(account_address)),
+        "chainId": chain_id,
+        "data": w3.to_hex(json.dumps(claim).encode("utf-8")),
     }
 
+    return transaction
+
+
+def add_claim_to_blockchain(claim):
+    private_key = os.getenv("PRIVATE_KEY")
+
+    # Check if connected to Ethereum network
+    if not w3.is_connected():
+        print("Error: Could not connect to the Ethereum network.")
+        return False
+
+    # Set up the transaction details
+    transaction = prepare_claim_transaction(claim)
+
+    # Estimate the gas required for the transaction
+    transaction["gas"] = w3.eth.estimate_gas(transaction)
+    print(f"Estimated gas required: {transaction['gas']}")
+
     # Sign the transaction
-    signed_transaction = w3.eth.account.signTransaction(transaction, private_key)
+    signed_transaction = w3.eth.account.sign_transaction(transaction, private_key)
 
     # Send the transaction
-    transaction_hash = w3.eth.sendRawTransaction(signed_transaction.rawTransaction)
+    transaction_hash = w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
     try:
         # Wait for the transaction to be mined
-        transaction_receipt = w3.eth.waitForTransactionReceipt(transaction_hash)
+        transaction_receipt = w3.eth.wait_for_transaction_receipt(transaction_hash)
     except Exception as e:
         print("Error while waiting for transaction receipt:", e)
         return False
@@ -77,7 +93,7 @@ def add_claim_to_blockchain(claim):
 
         try:
             # Retrieve the block information
-            block = w3.eth.getBlock(block_number)
+            block = w3.eth.get_block(block_number)
         except Exception as e:
             print("Error while retrieving block information:", e)
             return False
@@ -339,16 +355,19 @@ def claim_summary(request):
 
     # If not POST, render the claim summary page with customer and claim details
 
-    current_gas_price = w3.eth.gasPrice
-    gas_price_multiplier = 1.2  # Adjust this value as needed
-    adjusted_gas_price = int(current_gas_price * gas_price_multiplier)
-
-    gas_fee = adjusted_gas_price * 210000
-
-    gas_fee_ether = Web3.fromWei(gas_fee, "ether")
-
     customer_details = request.session.get("personal_details", None)
     claim_details = request.session.get("claim_details", None)
+
+    # Prepare the transaction
+    transaction = prepare_claim_transaction(claim_details)
+
+    # Estimate the gas required for the transaction
+    estimated_gas = w3.eth.estimate_gas(transaction)
+
+    # Calculate the gas fee
+    adjusted_gas_price = transaction["maxFeePerGas"]
+    gas_fee_wei = estimated_gas * adjusted_gas_price
+    gas_fee_ether = w3.from_wei(gas_fee_wei, "ether")
 
     context = {
         "customer_details": customer_details,
@@ -381,7 +400,7 @@ def admin_view_claim(request):
         input_data_hex = request.POST.get("input_data")
         if input_data_hex.startswith("0x"):
             input_data_hex = input_data_hex[2:]
-        input_data = Web3.toText(hexstr=input_data_hex)
+        input_data = Web3.to_text(hexstr=input_data_hex)
 
         try:
             claim_data = json.loads(input_data)
@@ -392,7 +411,7 @@ def admin_view_claim(request):
             # Get block information
             block_number = claim_data.get("block_number", None)
             if block_number:
-                block = w3.eth.getBlock(block_number)
+                block = w3.eth.get_block(block_number)
                 claim_data["block_hash"] = block.hash.hex()
                 claim_data["previous_block_hash"] = block.parentHash.hex()
 
