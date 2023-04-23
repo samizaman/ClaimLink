@@ -13,6 +13,7 @@ from core.models import (
     Customer,
 )
 from core.passport_verification import is_passport_fraud
+from .baggage_tag_extractor.baggage_tag import process_baggage_tag_image
 from .blockchain import add_claim_to_blockchain, prepare_claim_transaction
 from .flight_ticket_extractor.flight_ticket_info_extractor import extract_ticket_info
 from .forms import (
@@ -116,6 +117,20 @@ def required_documents(request):
             flight_ticket = form.cleaned_data["flight_ticket"]
             baggage_tag = form.cleaned_data.get("baggage_tag", None)
 
+            baggage_tag_path = default_storage.save(
+                f"temp/{baggage_tag.name}", baggage_tag
+            )
+            baggage_tag_temp_path = default_storage.path(baggage_tag_path)
+
+            extracted_baggage_data = process_baggage_tag_image(baggage_tag_temp_path)
+            # Print the extracted data
+            print("Extracted baggage data:")
+            for key, value in extracted_baggage_data.items():
+                print(f"{key}: {value}")
+
+            # Remove the temporary baggage_tag file after processing
+            os.remove(baggage_tag_temp_path)
+
             # Save the uploaded flight_ticket to a temporary location
             flight_ticket_path = default_storage.save(
                 f"temp/{flight_ticket.name}", flight_ticket
@@ -138,9 +153,6 @@ def required_documents(request):
                 passport_path = default_storage.save(
                     f"passport_photos/{passport.name}", passport
                 )
-                # travel_documents_path = default_storage.save(
-                #     "travel_documents/" + travel_documents.name, travel_documents
-                # )
 
                 passport_actual_path = default_storage.path(passport_path)
 

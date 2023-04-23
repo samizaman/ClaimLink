@@ -17,7 +17,9 @@ def load_airline_configs(file_path):
     return configs
 
 
-AIRLINE_CONFIGS = load_airline_configs("airline_configs.json")
+AIRLINE_CONFIGS = load_airline_configs(
+    os.path.join(os.path.dirname(__file__), "configs", "airline_configs.json")
+)
 
 
 def setup_textract_client(access_key, secret_key):
