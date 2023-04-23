@@ -1,0 +1,14 @@
+{
+    "emirates": {
+        "airline_name_regex": "(E[mn]i?r[a-z]*t?e?s)",
+        "flight_number_regex": "(EK\\s?\\d{3,4})",
+        "booking_ref_regex": "\\b([A-Z0-9]{6})\\b",
+        "passenger_name_regex": "([A-Z]+\\/[A-Z]+(?:MR|MRS|MS|DR|MISS|SR|JR|I|II|III|IV|V|VI|VII|VIII|IX|X)?)"
+    },
+    "flynas": {
+        "airline_name_regex": "([A-Z][a-z]*nas)",
+        "flight_number_regex": "([A-Z]{2}\\s?\\d{3,4})",
+        "booking_ref_regex": "\\b([A-Z0-9]{5})\\b",
+        "passenger_name_regex": "([A-Z]+\\/[A-Z]+(?:MR|MRS|MS|DR|MISS|SR|JR|I|II|III|IV|V|VI|VII|VIII|IX|X)?)"
+    }
+}

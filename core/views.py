@@ -122,10 +122,10 @@ def required_documents(request):
             )
             flight_ticket_temp_path = default_storage.path(flight_ticket_path)
 
-            extracted_data = extract_ticket_info(flight_ticket_temp_path)
+            extracted_flight_data = extract_ticket_info(flight_ticket_temp_path)
             # Print the extracted data
             print("Extracted data:")
-            for key, value in extracted_data.items():
+            for key, value in extracted_flight_data.items():
                 print(f"{key}: {value}")
 
             # Remove the temporary flight_ticket file after processing
