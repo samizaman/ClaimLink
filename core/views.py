@@ -157,13 +157,14 @@ def required_documents(request):
             passport = form.cleaned_data["passport"]
 
             extracted_flight_data = process_flight_ticket(flight_ticket)
-            print("Extracted flight data:")
-            for key, value in extracted_flight_data.items():
-                print(f"{key}: {value}")
+            if extracted_flight_data:
+                print("\nExtracted flight data:")
+                for key, value in extracted_flight_data.items():
+                    print(f"{key}: {value}")
 
             if baggage_tag:
                 extracted_baggage_data = process_baggage_tag(baggage_tag)
-                print("Extracted baggage data:")
+                print("\nExtracted baggage data:")
                 for key, value in extracted_baggage_data.items():
                     print(f"{key}: {value}")
 
