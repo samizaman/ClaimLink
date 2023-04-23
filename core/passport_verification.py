@@ -102,6 +102,20 @@ def is_passport_fraud(passport_path, user_data):
 
         response = coreapi.scan(document_primary=passport_path)
 
+        # Extract the name, passport expiry, dob, and gender
+        extracted_data = {
+            "name": response.get("result", {}).get("fullName", ""),
+            "passport_expiry": response.get("result", {}).get("expiry", ""),
+            "dob": response.get("result", {}).get("dob", ""),
+            "gender": response.get("result", {}).get("sex", ""),
+        }
+
+        # Print the extracted data
+        print("\nIDAnalyzer API Extracted Passport Data:")
+        for key, value in extracted_data.items():
+            print(f"{key.capitalize()}: {value}")
+        print()  # Add an empty line for better readability
+
         # Call each rule-checking function and aggregate the results
         violations = []
         violations.append(check_name_mismatch(response, user_data))
