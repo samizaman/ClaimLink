@@ -1,6 +1,7 @@
 import re
 
 from django import forms
+from django.forms.widgets import ClearableFileInput
 
 from core.models import COUNTRY_CHOICES, CURRENCY_CHOICES
 
@@ -125,14 +126,23 @@ class CoverageItemsSelectionForm(forms.Form):
     )
 
 
+# Create a custom widget to accept images and PDFs
+class ImageAndPDFInput(ClearableFileInput):
+    def __init__(self, attrs=None):
+        if attrs is None:
+            attrs = {}
+        attrs["accept"] = "image/*,application/pdf"
+        super().__init__(attrs)
+
+
 class RequiredDocumentsForm(forms.Form):
-    passport = forms.ImageField(
+    passport = forms.FileField(
         required=True,
-        widget=forms.FileInput(attrs={"class": "w-full p-2 border rounded"}),
+        widget=ImageAndPDFInput(attrs={"class": "w-full p-2 border rounded"}),
     )
-    flight_ticket = forms.ImageField(
+    flight_ticket = forms.FileField(
         required=True,
-        widget=forms.FileInput(attrs={"class": "w-full p-2 border rounded"}),
+        widget=ImageAndPDFInput(attrs={"class": "w-full p-2 border rounded"}),
     )
     baggage_tag = forms.ImageField(
         required=False,
