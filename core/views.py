@@ -107,71 +107,69 @@ def create_rejected_claim(customer, reason):
     return claim
 
 
+def process_flight_ticket(flight_ticket):
+    flight_ticket_path = default_storage.save(
+        f"temp/{flight_ticket.name}", flight_ticket
+    )
+    flight_ticket_temp_path = default_storage.path(flight_ticket_path)
+
+    extracted_flight_data = extract_ticket_info(flight_ticket_temp_path)
+    os.remove(flight_ticket_temp_path)
+    return extracted_flight_data
+
+
+def process_baggage_tag(baggage_tag):
+    baggage_tag_path = default_storage.save(f"temp/{baggage_tag.name}", baggage_tag)
+    baggage_tag_temp_path = default_storage.path(baggage_tag_path)
+
+    extracted_baggage_data = process_baggage_tag_image(baggage_tag_temp_path)
+    os.remove(baggage_tag_temp_path)
+    return extracted_baggage_data
+
+
+def process_passport(passport, request):
+    passport_path = default_storage.save(f"passport_photos/{passport.name}", passport)
+    passport_actual_path = default_storage.path(passport_path)
+
+    customer_details = request.session.get("personal_details", None)
+    user_data = (
+        {
+            "name": customer_details.get("name", ""),
+            "dob": customer_details.get("dob", ""),
+            "gender": customer_details.get("gender", ""),
+        }
+        if customer_details
+        else {"name": "", "dob": "", "gender": ""}
+    )
+
+    passport_status = is_passport_fraud(passport_actual_path, user_data)
+    return passport_status
+
+
 def required_documents(request):
     selected_coverage_items = request.session.get("coverage_items", [])
 
     if request.method == "POST":
         form = RequiredDocumentsForm(request.POST, request.FILES)
         if form.is_valid():
-            passport = form.cleaned_data["passport"]
             flight_ticket = form.cleaned_data["flight_ticket"]
             baggage_tag = form.cleaned_data.get("baggage_tag", None)
+            passport = form.cleaned_data["passport"]
 
-            baggage_tag_path = default_storage.save(
-                f"temp/{baggage_tag.name}", baggage_tag
-            )
-            baggage_tag_temp_path = default_storage.path(baggage_tag_path)
-
-            extracted_baggage_data = process_baggage_tag_image(baggage_tag_temp_path)
-            # Print the extracted data
-            print("Extracted baggage data:")
-            for key, value in extracted_baggage_data.items():
-                print(f"{key}: {value}")
-
-            # Remove the temporary baggage_tag file after processing
-            os.remove(baggage_tag_temp_path)
-
-            # Save the uploaded flight_ticket to a temporary location
-            flight_ticket_path = default_storage.save(
-                f"temp/{flight_ticket.name}", flight_ticket
-            )
-            flight_ticket_temp_path = default_storage.path(flight_ticket_path)
-
-            extracted_flight_data = extract_ticket_info(flight_ticket_temp_path)
-            # Print the extracted data
-            print("Extracted data:")
+            extracted_flight_data = process_flight_ticket(flight_ticket)
+            print("Extracted flight data:")
             for key, value in extracted_flight_data.items():
                 print(f"{key}: {value}")
 
-            # Remove the temporary flight_ticket file after processing
-            os.remove(flight_ticket_temp_path)
+            if baggage_tag:
+                extracted_baggage_data = process_baggage_tag(baggage_tag)
+                print("Extracted baggage data:")
+                for key, value in extracted_baggage_data.items():
+                    print(f"{key}: {value}")
 
-            # Your existing logic for processing the uploaded files...
             passport_verification_error = ""
-
             if passport:
-                passport_path = default_storage.save(
-                    f"passport_photos/{passport.name}", passport
-                )
-
-                passport_actual_path = default_storage.path(passport_path)
-
-                # Retrieve the user's name from the session
-                customer_details = request.session.get("personal_details", None)
-                print(customer_details)
-                if customer_details:
-                    user_data = {
-                        "name": customer_details.get("name", ""),
-                        "dob": customer_details.get("dob", ""),
-                        "gender": customer_details.get("gender", ""),
-                    }
-                else:
-                    # Handle the case when customer_details is not available in the session
-                    print("Customer details not found in the session.")
-                    user_data = {"name": "", "dob": "", "gender": ""}
-
-                # Check if the passport is a fraud
-                passport_status = is_passport_fraud(passport_actual_path, user_data)
+                passport_status = process_passport(passport, request)
                 passport_verification_errors = {
                     "name_mismatch": "The name on the passport does not match the provided name.",
                     "not_authentic": "The passport uploaded is not authentic.",
