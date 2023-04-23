@@ -32,12 +32,18 @@
             <div class="mb-4">
                 <label for="{{ form.passport.auto_id }}" class="block mb-2">Claimant's Passport: <span
                         class="text-red-600">*</span></label>
+                <div class="border-dashed border-2 border-gray-400 rounded p-4" id="passport-drop-zone">
+                    <p class="text-center">Drag and drop your passport here</p>
+                </div>
                 {{ form.passport }}
             </div>
 
             <div class="mb-4">
                 <label for="{{ form.flight_ticket.auto_id }}" class="block mb-2">Flight Ticket: <span
                         class="text-red-600">*</span></label>
+                <div class="border-dashed border-2 border-gray-400 rounded p-4" id="flight-ticket-drop-zone">
+                    <p class="text-center">Drag and drop your flight ticket here</p>
+                </div>
                 {{ form.flight_ticket }}
             </div>
 
@@ -45,10 +51,12 @@
                 <div class="mb-4">
                     <label for="{{ form.baggage_tag.auto_id }}" class="block mb-2">Baggage Tag: <span
                             class="text-red-600">*</span></label>
+                    <div class="border-dashed border-2 border-gray-400 rounded p-4" id="baggage-tag-drop-zone">
+                        <p class="text-center">Drag and drop your baggage tag here</p>
+                    </div>
                     {{ form.baggage_tag }}
                 </div>
             {% endif %}
-
 
             <div class="mt-6">
                 <button type="button" onclick="window.history.back()"
@@ -63,4 +71,44 @@
             </div>
         </form>
     </div>
+
+    <script>
+        function setupDropZone(dropZoneElement, inputElement) {
+            dropZoneElement.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZoneElement.classList.add('bg-gray-100');
+            });
+
+            dropZoneElement.addEventListener('dragleave', () => {
+                dropZoneElement.classList.remove('bg-gray-100');
+            });
+
+            dropZoneElement.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZoneElement.classList.remove('bg-gray-100');
+
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    inputElement.files = files;
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const passportDropZone = document.getElementById('passport-drop-zone');
+            const passportInput = document.querySelector('#{{ form.passport.auto_id }}');
+            setupDropZone(passportDropZone, passportInput);
+
+            const flightTicketDropZone = document.getElementById('flight-ticket-drop-zone');
+            const flightTicketInput = document.querySelector('#{{ form.flight_ticket.auto_id }}');
+            setupDropZone(flightTicketDropZone, flightTicketInput);
+
+            {% if 'Baggage Delay' in selected_coverage_items or 'Baggage Loss' in selected_coverage_items %}
+                const baggageTagDropZone = document.getElementById('baggage-tag-drop-zone');
+                const baggageTagInput = document.querySelector('#{{ form.baggage_tag.auto_id }}');
+                setupDropZone(baggageTagDropZone, baggageTagInput);
+            {% endif %}
+        });
+    </script>
+
 {% endblock %}
