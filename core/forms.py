@@ -43,9 +43,9 @@ class PersonalDetailsForm(forms.Form):
     gender = forms.ChoiceField(
         choices=[
             ("", "Select a gender"),
-            ("male", "Male"),
-            ("female", "Female"),
-            ("other", "Other"),
+            ("M", "Male"),
+            ("F", "Female"),
+            ("O", "Other"),
         ],
         widget=forms.Select(
             attrs={"class": "w-full p-2 border rounded", "required": True}
