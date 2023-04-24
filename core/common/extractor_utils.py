@@ -41,8 +41,16 @@ def extract_text_and_confidence(response):
 
 
 def extract_text(
-    image=None, region_coordinates=None, textract_client=None, image_path=None
+    image=None,
+    region_coordinates=None,
+    textract_client=None,
+    image_path=None,
+    use_aws=True,
 ):
+    if not use_aws:
+        print("AWS API usage is disabled.")
+        return ""
+
     if image_path:
         # Read the image
         with open(image_path, "rb") as image_file:

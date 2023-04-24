@@ -1,5 +1,4 @@
 import os
-import os
 import re
 from datetime import datetime
 
@@ -12,6 +11,8 @@ from core.common.extractor_utils import (
     load_config,
     setup_textract_client,
 )
+
+USE_AWS = False  # Set to False when you don't want to Free Tier credits
 
 
 def convert_pdf_to_images(pdf_path):
@@ -139,6 +140,7 @@ def process_document(image, config, textract_client, ticket_type=None):
                 image=image,
                 region_coordinates=region_coordinates,
                 textract_client=textract_client,
+                use_aws=USE_AWS,
             )
             processed_data = process_text(
                 region_name, text, processing_function, ticket_type
