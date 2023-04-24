@@ -1,10 +1,13 @@
+import io
 import json
 import os
+import re
 from datetime import datetime
 
+import boto3
 import cv2
 import numpy as np
-import pytesseract
+from botocore.exceptions import ClientError
 from pdf2image import convert_from_path
 
 
@@ -23,59 +26,55 @@ def load_config(config_path):
         return None
 
 
+def setup_textract_client(access_key, secret_key):
+    session = boto3.Session(
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name="us-west-2",
+    )
+    textract_client = session.client("textract")
+    return textract_client
+
+
 def preprocess_image(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     return gray
 
 
-def validate_coordinates(image, region_coordinates):
-    x, y, w, h = region_coordinates
-    height, width = image.shape[:2]
-
-    if x < 0 or y < 0 or x + w > width or y + h > height:
-        return False
-    return True
-
-
-def extract_text(image, region_coordinates, config):
-    x, y, w, h = region_coordinates
-    region_image = image[y : y + h, x : x + w]
-    text = pytesseract.image_to_string(region_image, config=config)
-    return text.strip()
-
-
-def process_text(region_name, text, processing_function, ticket_type=None):
-    text = text.strip()
-    if not text:
-        return {region_name: None}
-
-    if processing_function:
-        return processing_function(region_name, text, ticket_type)
+def process_name_emirates(name_parts):
+    if len(name_parts) == 2:
+        last_name, first_name_and_salutation = name_parts
+        salutation = first_name_and_salutation[-2:].upper()
+        first_name = first_name_and_salutation[:-2]
     else:
-        return {region_name: text.strip()}
+        salutation = ""
+        first_name = ""
+        last_name = ""
+    return salutation, first_name, last_name
+
+
+def process_name_flynas(name_parts):
+    if len(name_parts) == 3:
+        salutation, first_name, last_name = name_parts
+    else:
+        salutation = ""
+        first_name = ""
+        last_name = ""
+    return salutation, first_name, last_name
 
 
 def process_name(region_name, text, ticket_type=None):
-    text = text.replace("\n", " ").replace("/", "")
-    name_parts = text.split()
+    name_parts = re.split(r"\s|/", text)
 
-    if ticket_type == "emirates":
-        if len(name_parts) > 1:
-            first_name = name_parts[-1]
-            last_name = " ".join(name_parts[:-1])
-            salutation = first_name[-2:].upper()
-            first_name = first_name[:-2]
-        else:
-            salutation = ""
-            first_name = ""
-            last_name = ""
-    elif ticket_type == "flynas":
-        if len(name_parts) == 3:
-            salutation, first_name, last_name = name_parts
-        else:
-            salutation = ""
-            first_name = ""
-            last_name = ""
+    ticket_type_processors = {
+        "emirates": process_name_emirates,
+        "flynas": process_name_flynas,
+    }
+
+    if ticket_type in ticket_type_processors:
+        salutation, first_name, last_name = ticket_type_processors[ticket_type](
+            name_parts
+        )
     else:
         salutation = ""
         first_name = ""
@@ -89,7 +88,7 @@ def process_name(region_name, text, ticket_type=None):
 
 
 def process_date(region_name, text, ticket_type=None):
-    date_formats = ["%d%b%Y", "%A %d %B %Y"]
+    date_formats = ["%d%b%Y", "%A %d %B %Y", "%d %b %y"]
 
     for date_format in date_formats:
         try:
@@ -114,13 +113,71 @@ def process_flight_name(region_name, text, ticket_type=None):
     return {region_name: text.strip()}
 
 
-def process_document(image, config, ticket_type=None):
+def validate_coordinates(image, region_coordinates):
+    x, y, w, h = region_coordinates
+    height, width = image.shape[:2]
+
+    if x < 0 or y < 0 or x + w > width or y + h > height:
+        return False
+    return True
+
+
+def process_text_detection(client, document):
+    response = client.analyze_document(
+        Document={"Bytes": document}, FeatureTypes=["TABLES", "FORMS"]
+    )
+    return response
+
+
+def extract_text_and_confidence(response):
+    extracted_data = []
+    for block in response["Blocks"]:
+        if block["BlockType"] in ["LINE"]:
+            extracted_data.append(
+                {"Text": block["Text"], "Confidence": block["Confidence"]}
+            )
+    print("===== Extracted Data =====")
+    print(extracted_data)
+    return extracted_data
+
+
+def extract_text(image, region_coordinates, client):
+    x, y, w, h = region_coordinates
+    region_image = image[y : y + h, x : x + w]
+
+    # Convert the region image to image bytes using an in-memory buffer
+    is_success, buffer = cv2.imencode(".png", region_image)
+    image_bytes = io.BytesIO(buffer).getvalue()
+
+    # Analyze the document using Textract
+    response = process_text_detection(client, image_bytes)
+
+    # Extract the text and confidence values
+    extracted_data = extract_text_and_confidence(response)
+
+    # Combine the extracted text into a single string
+    text = " ".join([item["Text"] for item in extracted_data])
+
+    return text
+
+
+def process_text(region_name, text, processing_function, ticket_type=None):
+    text = text.strip()
+    if not text:
+        return {region_name: None}
+
+    if processing_function:
+        return processing_function(region_name, text, ticket_type)
+    else:
+        return {region_name: text.strip()}
+
+
+def process_document(image, config, textract_client, ticket_type=None):
     preprocessed_image = preprocess_image(image)
     extracted_data = {}
 
     for region_name, region_info in config["regions"].items():
         region_coordinates = region_info["coordinates"]
-        ocr_config = region_info["ocr_config"]
         processing_function_name = region_info.get("processing_function")
         processing_function = None
 
@@ -134,10 +191,17 @@ def process_document(image, config, ticket_type=None):
             processing_function = processing_functions.get(processing_function_name)
 
         if validate_coordinates(preprocessed_image, region_coordinates):
-            text = extract_text(preprocessed_image, region_coordinates, ocr_config)
+            text = extract_text(preprocessed_image, region_coordinates, textract_client)
             processed_data = process_text(
                 region_name, text, processing_function, ticket_type
             )
+
+            if ticket_type is None and region_name == "flight_name":
+                if "Emirates" in text:
+                    ticket_type = "emirates"
+                elif "Flynas" in text:
+                    ticket_type = "flynas"
+
         else:
             print(f"Invalid coordinates for region: {region_name}")
             processed_data = {region_name: None}
@@ -147,89 +211,46 @@ def process_document(image, config, ticket_type=None):
     return extracted_data
 
 
-def extract_ticket_info(file_path):
-    extracted_data = None
-
-    file_extension = os.path.splitext(file_path)[1].lower()
+def read_image(file_path, file_extension):
     if file_extension == ".pdf":
         images = convert_pdf_to_images(file_path)
         if images:
             image = images[0]
-            # Convert PIL image to OpenCV Mat
-            image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-
-            # Extract flight_name without any configuration
-            flight_name_region_coordinates = (
-                0,
-                0,
-                image.shape[1],
-                int(image.shape[0] * 0.2),
-            )
-            flight_name = extract_text(image, flight_name_region_coordinates, "--psm 6")
-
-            # Choose the appropriate configuration file based on flight_name
-            if "Emirates" in flight_name:
-                config_path = os.path.join(
-                    os.path.dirname(__file__), "configs", "emirates_ticket_config.json"
-                )
-                ticket_type = "emirates"
-            elif "flynas" in flight_name:
-                config_path = os.path.join(
-                    os.path.dirname(__file__), "configs", "flynas_ticket_config.json"
-                )
-                ticket_type = "flynas"
-            else:
-                print("Unknown flight name. Please provide a valid ticket.")
-                return
-
-            config = load_config(config_path)
-            if config is None:
-                print(
-                    "Error loading the configuration file. Please check the file path and format."
-                )
-                return
-            extracted_data = process_document(image, config, ticket_type)
+            return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         else:
             print("No images found in the PDF.")
+            return None
     else:
         try:
-            # Process the input image directly
-            image = cv2.imread(file_path)
+            return cv2.imread(file_path)
         except Exception as e:
             print(f"Error reading the input image: {e}")
-            return
-        if image is not None:
-            # Extract flight_name without any configuration
-            flight_name_region_coordinates = (
-                0,
-                0,
-                image.shape[1],
-                int(image.shape[0] * 0.1),
+            return None
+
+
+def load_and_process_config(image, textract_client):
+    if image is not None:
+        config_path = os.path.join(
+            os.path.dirname(__file__), "configs", "emirates_ticket_config.json"
+        )
+        config = load_config(config_path)
+        if config is None:
+            print(
+                "Error loading the configuration file. Please check the file path and format."
             )
-            flight_name = extract_text(image, flight_name_region_coordinates, "--psm 6")
+            return None
+        return process_document(image, config, textract_client)
+    else:
+        print("Error reading the input image.")
+        return None
 
-            # Choose the appropriate configuration file based on flight_name
-            if "Emirates" in flight_name:
-                config_path = os.path.join(
-                    os.path.dirname(__file__), "configs", "emirates_ticket_config.json"
-                )
-                ticket_type = "emirates"
-            elif "flynas" in flight_name:
-                config_path = os.path.join(
-                    os.path.dirname(__file__), "configs", "flynas_ticket_config.json"
-                )
-                ticket_type = "flynas"
-            else:
-                print("Unknown flight name. Please provide a valid ticket.")
-                return
 
-            config = load_config(config_path)
-            if config is None:
-                print(
-                    "Error loading the configuration file. Please check the file path and format."
-                )
-                return
-            extracted_data = process_document(image, config, ticket_type)
-        else:
-            print("Error reading the input image.")
+def extract_ticket_info(file_path):
+    textract_client = setup_textract_client(
+        access_key=os.getenv("AWS_ACCESS_KEY"), secret_key=os.getenv("AWS_SECRET_KEY")
+    )
+
+    file_extension = os.path.splitext(file_path)[1].lower()
+    image = read_image(file_path, file_extension)
+    extracted_data = load_and_process_config(image, textract_client)
     return extracted_data
