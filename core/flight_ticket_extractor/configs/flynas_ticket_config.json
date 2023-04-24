@@ -13,7 +13,7 @@
       "processing_function": "process_name"
     },
     "departure_date": {
-      "coordinates": [460, 1471, 285, 39],
+      "coordinates": [467, 1474, 279, 37],
       "processing_function": "process_date"
     },
     "arrival_date": {
