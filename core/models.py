@@ -49,6 +49,11 @@ class Claim(models.Model):
         ("approved", "Approved"),
         ("rejected", "Rejected"),
     )
+    SEVERITY_CHOICES = [
+        ("Low", "Low"),
+        ("Medium", "Medium"),
+        ("High", "High"),
+    ]
     customer = models.ForeignKey(Customer, models.PROTECT, null=True, blank=True)
     date_of_loss = models.DateField()
     description_of_loss = models.TextField()
@@ -74,6 +79,9 @@ class Claim(models.Model):
         default="approved",
     )
     reasons = models.TextField(blank=True, null=True)
+    severity = models.CharField(
+        max_length=10, choices=SEVERITY_CHOICES, default="Low", null=True, blank=True
+    )
 
     def __str__(self):
         return f"{self.claim_reference_number}"
