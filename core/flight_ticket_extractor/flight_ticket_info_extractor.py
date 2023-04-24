@@ -12,7 +12,11 @@ from core.common.extractor_utils import (
     setup_textract_client,
 )
 
-USE_AWS = False  # Set to False when you don't want to Free Tier credits
+USE_AWS = True  # Set to False when you don't want to Free Tier credits
+TICKET_TYPE_KEYWORDS = {
+    "emirates": "Emirates",
+    "flynas": "Flynas",
+}
 
 
 def convert_pdf_to_images(pdf_path):
@@ -178,10 +182,11 @@ def read_image(file_path, file_extension):
             return None
 
 
-def load_and_process_config(image, textract_client):
+def load_and_process_config(image, textract_client, ticket_type):
     if image is not None:
+        config_filename = f"{ticket_type}_ticket_config.json"
         config_path = os.path.join(
-            os.path.dirname(__file__), "configs", "emirates_ticket_config.json"
+            os.path.dirname(__file__), "configs", config_filename
         )
         config = load_config(config_path)
         if config is None:
@@ -189,10 +194,24 @@ def load_and_process_config(image, textract_client):
                 "Error loading the configuration file. Please check the file path and format."
             )
             return None
-        return process_document(image, config, textract_client)
+        return process_document(image, config, textract_client, ticket_type)
     else:
         print("Error reading the input image.")
         return None
+
+
+def determine_ticket_type(image, textract_client):
+    if image is not None:
+        text = extract_text(
+            image=image,
+            region_coordinates=[0, 0, image.shape[1], image.shape[0]],
+            textract_client=textract_client,
+            use_aws=USE_AWS,
+        )
+        for ticket_type, keyword in TICKET_TYPE_KEYWORDS.items():
+            if keyword in text:
+                return ticket_type
+    return None
 
 
 def extract_ticket_info(file_path):
@@ -202,5 +221,11 @@ def extract_ticket_info(file_path):
 
     file_extension = os.path.splitext(file_path)[1].lower()
     image = read_image(file_path, file_extension)
-    extracted_data = load_and_process_config(image, textract_client)
+
+    ticket_type = determine_ticket_type(image, textract_client)
+    if ticket_type is None:
+        print("Error: Could not determine ticket type.")
+        return None
+
+    extracted_data = load_and_process_config(image, textract_client, ticket_type)
     return extracted_data
