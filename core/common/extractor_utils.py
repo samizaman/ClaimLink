@@ -18,9 +18,7 @@ def setup_textract_client(access_key, secret_key):
 
 def process_text_detection(client, document):
     try:
-        response = client.analyze_document(
-            Document={"Bytes": document}, FeatureTypes=["TABLES", "FORMS"]
-        )
+        response = client.detect_document_text(Document={"Bytes": document})
     except ClientError:
         print("Couldn't detect text.")
         raise
