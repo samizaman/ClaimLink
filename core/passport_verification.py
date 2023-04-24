@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 from dotenv import load_dotenv
+from fuzzywuzzy import fuzz
 from idanalyzer import APIError, CoreAPI
 
 load_dotenv()
@@ -25,9 +26,13 @@ def check_name_mismatch(response, user_data):
     extracted_full_name = response.get("result", {}).get("fullName", "").lower()
     user_name = user_data.get("name", "").lower()
 
-    if extracted_full_name != user_name:
-        return "name_mismatch"
-    return None
+    name_similarity_score = fuzz.ratio(extracted_full_name, user_name)
+    print(f"Name similarity score: {name_similarity_score}")
+
+    # Set a threshold for the similarity score, e.g., 80
+    if name_similarity_score < 80:
+        return "name_mismatch", name_similarity_score
+    return None, 100
 
 
 def check_passport_authentication(response):
