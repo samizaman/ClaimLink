@@ -77,7 +77,7 @@ class Claim(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default="to be reviewed",
+        default="To Be Reviewed",
     )
     reasons = models.TextField(blank=True, null=True)
     severity = models.CharField(
