@@ -1,5 +1,6 @@
 import json
 import os
+from decimal import Decimal
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.storage import default_storage
@@ -27,7 +28,11 @@ load_dotenv()
 
 goerli_url = f"https://goerli.infura.io/v3/{os.getenv('INFURA_PROJECT_ID')}"
 w3 = Web3(Web3.HTTPProvider(goerli_url))
-SEVERITY_THRESHOLDS = {"Low": 0.9, "Medium": 0.75, "High": 0}
+SEVERITY_THRESHOLDS = {
+    "Low": Decimal("90"),
+    "Medium": Decimal("75"),
+    "High": Decimal("0"),
+}
 
 
 def home(request):
@@ -144,10 +149,13 @@ def process_passport(passport, request):
     )
 
     passport_scores = is_passport_fraud(passport_actual_path, user_data)
+    print(f"Passport scores: {passport_scores}")
 
     # Determine the highest similarity/confidence score and its corresponding error type
     max_score = max(passport_scores.values())
+    print(f"Max score: {max_score}")
     max_score_error = max(passport_scores, key=passport_scores.get)
+    print(f"Max score error: {max_score_error}")
 
     return max_score, max_score_error
 
@@ -175,29 +183,15 @@ def required_documents(request):
                     for key, value in extracted_baggage_data.items():
                         print(f"{key}: {value}")
 
-            passport_verification_error = ""
             if passport:
                 max_score, max_score_error = process_passport(passport, request)
-                request.session["passport_max_confidence_score"] = max_score
+                print(f"Before storing in session: {max_score}")  # Add this line
+                request.session["passport_max_confidence_score"] = str(max_score)
+                print(
+                    f"After storing in session: {request.session['passport_max_confidence_score']}"
+                )  # Add this line
                 request.session["passport_max_confidence_score_error"] = max_score_error
 
-                passport_verification_errors = {
-                    "name_mismatch": "The name on the passport does not match the provided name.",
-                    "not_authentic": "The passport uploaded is not authentic.",
-                    "unrecognized": "The passport uploaded is not recognized. Please upload a clear and fully visible image.",
-                    "expired_passport": "The passport is expired.",
-                    "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
-                    "gender_mismatch": "The gender on the passport does not match the provided gender.",
-                }
-
-                passport_verification_error = passport_verification_errors.get(
-                    max_score_error, ""
-                )
-                print(f"Passport Verification Error: {passport_verification_error}")
-
-                request.session[
-                    "passport_verification_error"
-                ] = passport_verification_error
                 return redirect("claim_summary")
 
             return redirect("claim_summary")
@@ -218,11 +212,23 @@ def required_documents(request):
     )
 
 
-def get_severity_and_status(score):
+def get_severity_and_status(score, max_score_error):
+    reasons = []
     for severity, threshold in SEVERITY_THRESHOLDS.items():
         if score >= threshold:
             status = "Approved" if severity == "Low" else "To Be Reviewed"
-            return severity, status
+            if max_score_error:
+                passport_verification_errors = {
+                    "name_mismatch": "The name on the passport does not match the provided name.",
+                    "not_authentic": "The passport uploaded is not authentic.",
+                    "unrecognized": "The passport uploaded is not recognized. Please upload a clear and fully visible image.",
+                    "expired_passport": "The passport is expired.",
+                    "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
+                    "gender_mismatch": "The gender on the passport does not match the provided gender.",
+                }
+                reasons.append(passport_verification_errors.get(max_score_error, ""))
+            print(f"severity: {severity}, status: {status}, reasons: {reasons}")
+            return severity, status, reasons
 
 
 def claim_summary(request):
@@ -242,12 +248,23 @@ def claim_summary(request):
             claim = Claim(customer=customer, **claim_details)
 
             # Calculate severity and set claim status based on the maximum confidence score
-            passport_max_confidence_score = request.session.get(
-                "passport_max_confidence_score", 0
+            passport_max_confidence_score = Decimal(
+                request.session.get("passport_max_confidence_score", "0")
+            )  # Convert back to Decimal
+
+            print(
+                f"From session in Claim Summary function: {passport_max_confidence_score}"
             )
-            claim.severity, claim.status = get_severity_and_status(
-                passport_max_confidence_score
+            max_score_error = request.session.get(
+                "passport_max_confidence_score_error", ""
             )
+            print(f"From session in Claim Summary function: {max_score_error}")
+            claim.severity, claim.status, claim.reasons = get_severity_and_status(
+                passport_max_confidence_score, max_score_error
+            )
+
+            # Convert reasons list to a string and save it
+            claim.reasons = "; ".join(claim.reasons)
 
             # Save the claim to the database
             claim.save()
