@@ -176,7 +176,10 @@ def required_documents(request):
 
             passport_verification_error = ""
             if passport:
-                passport_status = process_passport(passport, request)
+                max_score, max_score_error = process_passport(passport, request)
+                request.session["passport_max_score"] = max_score
+                request.session["passport_max_score_error"] = max_score_error
+
                 passport_verification_errors = {
                     "name_mismatch": "The name on the passport does not match the provided name.",
                     "not_authentic": "The passport uploaded is not authentic.",
@@ -186,14 +189,10 @@ def required_documents(request):
                     "gender_mismatch": "The gender on the passport does not match the provided gender.",
                 }
 
-                if passport_status:
-                    passport_verification_error = "; ".join(
-                        [
-                            passport_verification_errors.get(status, "")
-                            for status in passport_status
-                        ]
-                    )
-                    print(f"Passport Verification Error: {passport_verification_error}")
+                passport_verification_error = passport_verification_errors.get(
+                    max_score_error, ""
+                )
+                print(f"Passport Verification Error: {passport_verification_error}")
 
                 request.session[
                     "passport_verification_error"
