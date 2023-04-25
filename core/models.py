@@ -48,6 +48,7 @@ class Claim(models.Model):
     STATUS_CHOICES = (
         ("approved", "Approved"),
         ("rejected", "Rejected"),
+        ("to be reviewed", "To Be Reviewed"),
     )
     SEVERITY_CHOICES = [
         ("Low", "Low"),
@@ -76,7 +77,7 @@ class Claim(models.Model):
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
-        default="approved",
+        default="to be reviewed",
     )
     reasons = models.TextField(blank=True, null=True)
     severity = models.CharField(
