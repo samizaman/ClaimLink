@@ -216,8 +216,12 @@ def get_severity_and_status(score, max_score_error):
     reasons = []
     for severity, threshold in SEVERITY_THRESHOLDS.items():
         if score >= threshold:
+            # If the severity is "Low" and there are no errors in max_score_error (i.e., max_score_error is None or
+            # False), set status to "Approved"
             if severity == "Low" and not max_score_error:
                 status = "Approved"
+            elif score < Decimal("50"):
+                status = "Rejected"
             else:
                 status = "To Be Reviewed"
 
