@@ -46,9 +46,9 @@ class CoverageItem(models.Model):
 
 class Claim(models.Model):
     STATUS_CHOICES = (
-        ("approved", "Approved"),
-        ("rejected", "Rejected"),
-        ("to be reviewed", "To Be Reviewed"),
+        ("Approved", "Approved"),
+        ("Rejected", "Rejected"),
+        ("To Be Reviewed", "To Be Reviewed"),
     )
     SEVERITY_CHOICES = [
         ("Low", "Low"),
