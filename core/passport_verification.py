@@ -122,8 +122,9 @@ def is_passport_fraud(passport_path, user_data):
         print()  # Add an empty line for better readability
 
         # Call each rule-checking function and aggregate the results
-        scores = {}
-        scores["name_mismatch"] = check_name_mismatch(response, user_data)
+        scores = {
+            "name_mismatch": check_name_mismatch(response, user_data),
+        }
 
         # Filter out any None values from the scores dictionary
         scores = {key: value for key, value in scores.items() if value is not None}
