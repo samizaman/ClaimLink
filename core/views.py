@@ -142,8 +142,13 @@ def process_passport(passport, request):
         else {"name": "", "dob": "", "gender": ""}
     )
 
-    passport_status = is_passport_fraud(passport_actual_path, user_data)
-    return passport_status
+    passport_scores = is_passport_fraud(passport_actual_path, user_data)
+
+    # Determine the highest similarity/confidence score and its corresponding error type
+    max_score = max(passport_scores.values())
+    max_score_error = max(passport_scores, key=passport_scores.get)
+
+    return max_score, max_score_error
 
 
 def required_documents(request):
