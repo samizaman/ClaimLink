@@ -27,6 +27,7 @@ load_dotenv()
 
 goerli_url = f"https://goerli.infura.io/v3/{os.getenv('INFURA_PROJECT_ID')}"
 w3 = Web3(Web3.HTTPProvider(goerli_url))
+SEVERITY_THRESHOLDS = {"Low": 0.9, "Medium": 0.75, "High": 0}
 
 
 def home(request):
@@ -177,8 +178,8 @@ def required_documents(request):
             passport_verification_error = ""
             if passport:
                 max_score, max_score_error = process_passport(passport, request)
-                request.session["passport_max_score"] = max_score
-                request.session["passport_max_score_error"] = max_score_error
+                request.session["passport_max_confidence_score"] = max_score
+                request.session["passport_max_confidence_score_error"] = max_score_error
 
                 passport_verification_errors = {
                     "name_mismatch": "The name on the passport does not match the provided name.",
@@ -217,6 +218,13 @@ def required_documents(request):
     )
 
 
+def get_severity_and_status(score):
+    for severity, threshold in SEVERITY_THRESHOLDS.items():
+        if score >= threshold:
+            status = "Approved" if severity == "Low" else "To Be Reviewed"
+            return severity, status
+
+
 def claim_summary(request):
     if request.method == "POST":
         if "submit-btn" in request.POST:
@@ -233,15 +241,13 @@ def claim_summary(request):
             # Create new Claim instance
             claim = Claim(customer=customer, **claim_details)
 
-            # Check if any passport checks failed
-            passport_verification_error = request.session.get(
-                "passport_verification_error", ""
+            # Calculate severity and set claim status based on the maximum confidence score
+            passport_max_confidence_score = request.session.get(
+                "passport_max_confidence_score", 0
             )
-
-            if passport_verification_error:
-                # Update claim status and reasons
-                claim.status = "rejected"
-                claim.reasons = passport_verification_error
+            claim.severity, claim.status = get_severity_and_status(
+                passport_max_confidence_score
+            )
 
             # Save the claim to the database
             claim.save()
