@@ -216,7 +216,11 @@ def get_severity_and_status(score, max_score_error):
     reasons = []
     for severity, threshold in SEVERITY_THRESHOLDS.items():
         if score >= threshold:
-            status = "Approved" if severity == "Low" else "To Be Reviewed"
+            if severity == "Low" and not max_score_error:
+                status = "Approved"
+            else:
+                status = "To Be Reviewed"
+
             if max_score_error:
                 passport_verification_errors = {
                     "name_mismatch": "The name on the passport does not match the provided name.",
@@ -227,7 +231,6 @@ def get_severity_and_status(score, max_score_error):
                     "gender_mismatch": "The gender on the passport does not match the provided gender.",
                 }
                 reasons.append(passport_verification_errors.get(max_score_error, ""))
-            print(f"severity: {severity}, status: {status}, reasons: {reasons}")
             return severity, status, reasons
 
 
