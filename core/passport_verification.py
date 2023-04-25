@@ -1,4 +1,5 @@
 import os
+from decimal import Decimal
 from datetime import datetime
 
 from dotenv import load_dotenv
@@ -30,9 +31,10 @@ def check_name_mismatch(response, user_data):
     print(f"Name similarity score: {name_similarity_score}")
 
     # Set a threshold for the similarity score, e.g., 80
-    if name_similarity_score < 80:
-        return "name_mismatch", name_similarity_score
-    return None, 100
+    threshold = Decimal("80")
+    if Decimal(name_similarity_score) < threshold:
+        return Decimal(name_similarity_score)  # Return the score if there's a mismatch
+    return None  # Return None if there's no mismatch
 
 
 def check_passport_authentication(response):
