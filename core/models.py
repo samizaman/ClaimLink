@@ -75,7 +75,7 @@ class Claim(models.Model):
     )
     coverage_items = models.ManyToManyField(CoverageItem)
     status = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=STATUS_CHOICES,
         default="to be reviewed",
     )
