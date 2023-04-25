@@ -98,7 +98,7 @@ def check_gender_match(response, user_data):
 
 def is_passport_fraud(passport_path, user_data):
     if not USE_ID_ANALYZER_API:
-        return []  # Assume the document is authentic if not using the API
+        return {}  # Assume the document is authentic if not using the API
 
     try:
         coreapi = CoreAPI(os.getenv("IDANALYZER_API_KEY"), API_REGION)
@@ -122,16 +122,11 @@ def is_passport_fraud(passport_path, user_data):
         print()  # Add an empty line for better readability
 
         # Call each rule-checking function and aggregate the results
-        violations = []
-        violations.append(check_name_mismatch(response, user_data))
-        violations.append(check_passport_authentication(response))
-        violations.append(check_passport_recognition(response))
-        violations.append(check_passport_expiry(response))
-        violations.append(check_dob_match(response, user_data))
-        violations.append(check_gender_match(response, user_data))
+        scores = {}
+        scores["name_mismatch"] = check_name_mismatch(response, user_data)
 
-        # Filter out any None values from the violations list
-        violations = [violation for violation in violations if violation]
+        # Filter out any None values from the scores dictionary
+        scores = {key: value for key, value in scores.items() if value is not None}
 
         # Read the remaining calls value, update and print the value
         remaining_calls = read_remaining_calls()
@@ -142,11 +137,11 @@ def is_passport_fraud(passport_path, user_data):
         if response.get("authentication"):
             authentication_result = response["authentication"]
             if authentication_result["score"] > 0.5:
-                return violations  # The document uploaded is authentic
+                return scores  # The document uploaded is authentic
             else:
-                return violations  # Return the violated rules
+                return scores  # Return the scores for each check
         else:
-            return violations  # Authentication not enabled or not available
+            return scores  # Authentication not enabled or not available
 
     except APIError as e:
         details = e.args[0]
@@ -156,9 +151,9 @@ def is_passport_fraud(passport_path, user_data):
             )
         )
         if details["code"] == 9:
-            return ["unrecognized"]
-        return []  # If API returns an error, assume the document is not fake
+            return {"unrecognized": 1}  # Indicate an unrecognized document
+        return {}  # If API returns an error, assume the document is not fake
 
     except Exception as e:
         print(e)
-        return []  # If an exception occurs, assume the document is not fake
+        return {}  # If an exception occurs, assume the document is not fake
