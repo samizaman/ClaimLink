@@ -167,6 +167,9 @@ def calculate_composite_score(passport_scores):
     # Calculate the composite score by taking the average of the normalized scores
     composite_score = sum(normalized_scores) / len(normalized_scores)
 
+    # Convert the composite score back to the 0-100 range
+    composite_score *= 100
+
     return composite_score
 
 
