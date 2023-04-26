@@ -248,20 +248,20 @@ def required_documents(request):
     )
 
 
-def get_severity_and_status(score, max_score_error):
+def get_severity_and_status(score, error_types):
     reasons = []
     for severity, threshold in SEVERITY_THRESHOLDS.items():
         if score >= threshold:
-            # If the severity is "Low" and there are no errors in max_score_error (i.e., max_score_error is None or
-            # False), set status to "Approved"
-            if severity == "Low" and not max_score_error:
+            # If the severity is "Low" and there are no errors in error_types
+            # (i.e., error_types is empty), set status to "Approved"
+            if severity == "Low" and not error_types:
                 status = "Approved"
             elif score < Decimal("50"):
                 status = "Rejected"
             else:
                 status = "To Be Reviewed"
 
-            if max_score_error:
+            if error_types:
                 passport_verification_errors = {
                     "name_mismatch": "The name on the passport does not match the provided name.",
                     "not_authentic": "The passport uploaded is not authentic.",
@@ -270,7 +270,8 @@ def get_severity_and_status(score, max_score_error):
                     "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
                     "gender_mismatch": "The gender on the passport does not match the provided gender.",
                 }
-                reasons.append(passport_verification_errors.get(max_score_error, ""))
+                for error in error_types:
+                    reasons.append(passport_verification_errors.get(error, ""))
             return severity, status, reasons
 
 
@@ -290,20 +291,15 @@ def claim_summary(request):
             # Create new Claim instance
             claim = Claim(customer=customer, **claim_details)
 
-            # Calculate severity and set claim status based on the maximum confidence score
-            passport_max_confidence_score = Decimal(
-                request.session.get("passport_max_confidence_score", "0")
-            )  # Convert back to Decimal
+            # Calculate severity and set claim status based on composite score
+            composite_score = Decimal(request.session.get("composite_score", "0"))
+            error_types = request.session.get("error_types", [])
 
-            print(
-                f"From session in Claim Summary function: {passport_max_confidence_score}"
-            )
-            max_score_error = request.session.get(
-                "passport_max_confidence_score_error", ""
-            )
-            print(f"From session in Claim Summary function: {max_score_error}")
+            print(f"Composite Score in Claim Summary function: {composite_score}")
+            print(f"Error Types in Claim Summary function: {error_types}")
+
             claim.severity, claim.status, claim.reasons = get_severity_and_status(
-                passport_max_confidence_score, max_score_error
+                composite_score, error_types
             )
 
             # Convert reasons list to a string and save it
