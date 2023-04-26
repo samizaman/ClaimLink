@@ -133,6 +133,21 @@ def process_baggage_tag(baggage_tag):
     return extracted_baggage_data
 
 
+def normalize_score(score, min_score, max_score):
+    return (score - min_score) / (max_score - min_score)
+
+
+def calculate_composite_score(passport_scores):
+    min_score = 0
+    max_score = 100
+    normalized_scores = [
+        normalize_score(score, min_score, max_score)
+        for score in passport_scores.values()
+    ]
+    composite_score = sum(normalized_scores) / len(normalized_scores)
+    return composite_score
+
+
 def process_passport(passport, request):
     passport_path = default_storage.save(f"passport_photos/{passport.name}", passport)
     passport_actual_path = default_storage.path(passport_path)
