@@ -221,13 +221,11 @@ def required_documents(request):
                         print(f"{key}: {value}")
 
             if passport:
-                max_score, max_score_error = process_passport(passport, request)
-                print(f"Before storing in session: {max_score}")  # Add this line
-                request.session["passport_max_confidence_score"] = str(max_score)
-                print(
-                    f"After storing in session: {request.session['passport_max_confidence_score']}"
-                )  # Add this line
-                request.session["passport_max_confidence_score_error"] = max_score_error
+                composite_score, error_types = process_passport(passport, request)
+                print(f"Composite Score in Required Documents: {composite_score}")
+                print(f"Error Types in Required Documents: {error_types}")
+                request.session["composite_score"] = str(composite_score)
+                request.session["error_types"] = error_types
 
                 return redirect("claim_summary")
 
