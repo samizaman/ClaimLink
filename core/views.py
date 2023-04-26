@@ -134,17 +134,39 @@ def process_baggage_tag(baggage_tag):
 
 
 def normalize_score(score, min_score, max_score):
+    """
+    The normalize_score function takes a score and its minimum and maximum possible values,
+    then scales the score to a range between 0 and 1.
+
+    :param score: The score to be normalized
+    :param min_score: The minimum possible value of the score
+    :param max_score: The maximum possible value of the score
+    :return: The normalized score
+    """
     return (score - min_score) / (max_score - min_score)
 
 
 def calculate_composite_score(passport_scores):
+    """
+    The calculate_composite_score function takes a dictionary of passport_scores and calculates
+    a composite score by normalizing the individual scores and then averaging them.
+
+    :param passport_scores: A dictionary containing the scores to be combined
+    :return: The calculated composite score
+    """
+    # Define the minimum and maximum score possible for each individual score
     min_score = 0
     max_score = 100
+
+    # Normalize the scores using the normalize_score function, and create a list of normalized scores
     normalized_scores = [
         normalize_score(score, min_score, max_score)
         for score in passport_scores.values()
     ]
+
+    # Calculate the composite score by taking the average of the normalized scores
     composite_score = sum(normalized_scores) / len(normalized_scores)
+
     return composite_score
 
 
