@@ -188,13 +188,14 @@ def process_passport(passport, request):
     passport_scores = is_passport_fraud(passport_actual_path, user_data)
     print(f"Passport scores: {passport_scores}")
 
-    # Determine the highest similarity/confidence score and its corresponding error type
-    max_score = max(passport_scores.values())
-    print(f"Max score: {max_score}")
-    max_score_error = max(passport_scores, key=passport_scores.get)
-    print(f"Max score error: {max_score_error}")
+    # Calculate the composite score
+    composite_score = calculate_composite_score(passport_scores)
+    print(f"Composite score: {composite_score}")
 
-    return max_score, max_score_error
+    # You may still want to identify which errors occurred, if any, for providing detailed feedback
+    error_types = [key for key, value in passport_scores.items() if value > 0]
+
+    return composite_score, error_types
 
 
 def required_documents(request):
