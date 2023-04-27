@@ -9,7 +9,7 @@ from idanalyzer import APIError, CoreAPI
 load_dotenv()
 
 API_REGION = "US"
-USE_ID_ANALYZER_API = False  # Set to False when you don't want to consume API credits
+USE_ID_ANALYZER_API = True  # Set to False when you don't want to consume API credits
 
 
 def read_remaining_calls():
@@ -118,9 +118,9 @@ def check_gender_match(response, user_data):
     return None
 
 
-def is_passport_fraud(passport_path, user_data):
+def analyze_passport(passport_path, user_data):
     if not USE_ID_ANALYZER_API:
-        return {}  # Assume the document is authentic if not using the API
+        return {}, {}  # Assume the document is authentic if not using the API
 
     try:
         coreapi = CoreAPI(os.getenv("IDANALYZER_API_KEY"), API_REGION)
@@ -162,14 +162,15 @@ def is_passport_fraud(passport_path, user_data):
         print(f"Remaining calls: {remaining_calls}")
         update_remaining_calls(remaining_calls)
 
+        # If the 'authentication' key exists and the score is less than or equal to 0.5,
+        # update the 'not_authentic' score
         if response.get("authentication"):
             authentication_result = response["authentication"]
-            if authentication_result["score"] > 0.5:
-                return scores  # The document uploaded is authentic
-            else:
-                return scores  # Return the scores for each check
-        else:
-            return scores  # Authentication not enabled or not available
+            if authentication_result["score"] <= 0.5:
+                scores["not_authentic"] = 1 - authentication_result["score"]
+
+        # Return both scores and extracted_data
+        return scores, extracted_data
 
     except APIError as e:
         details = e.args[0]
@@ -179,9 +180,9 @@ def is_passport_fraud(passport_path, user_data):
             )
         )
         if details["code"] == 9:
-            return {"unrecognized": 1}  # Indicate an unrecognized document
-        return {}  # If API returns an error, assume the document is not fake
+            return {"unrecognized": 1}, {}  # Indicate an unrecognized document
+        return {}, {}  # If API returns an error, assume the document is not fake
 
     except Exception as e:
         print(e)
-        return {}  # If an exception occurs, assume the document is not fake
+        return {}, {}  # If an exception occurs, assume the document is not fake

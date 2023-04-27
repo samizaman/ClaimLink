@@ -13,7 +13,7 @@ from core.models import (
     CoverageItem,
     Customer,
 )
-from core.passport_verification import is_passport_fraud
+from core.passport_verification import analyze_passport
 from .baggage_tag_extractor.baggage_tag import process_baggage_tag_image
 from .blockchain import add_claim_to_blockchain, prepare_claim_transaction
 from .flight_ticket_extractor.flight_ticket_info_extractor import extract_ticket_info
@@ -23,6 +23,7 @@ from .forms import (
     PersonalDetailsForm,
     RequiredDocumentsForm,
 )
+from .rules import compare_names
 
 load_dotenv()
 
@@ -40,6 +41,7 @@ ERROR_TYPE_WEIGHTS = {
     "gender_mismatch": Decimal("0.2"),
     "unrecognized": Decimal("0.1"),
     "not_authentic": Decimal("0.05"),
+    "flight_ticket_name_mismatch": Decimal("0.1"),
 }
 
 
@@ -121,54 +123,12 @@ def create_rejected_claim(customer, reason):
     return claim
 
 
-def process_flight_ticket(flight_ticket):
-    flight_ticket_path = default_storage.save(
-        f"temp/{flight_ticket.name}", flight_ticket
-    )
-    flight_ticket_temp_path = default_storage.path(flight_ticket_path)
-
-    extracted_flight_data = extract_ticket_info(flight_ticket_temp_path)
-    os.remove(flight_ticket_temp_path)
-    return extracted_flight_data
-
-
-def process_baggage_tag(baggage_tag):
-    baggage_tag_path = default_storage.save(f"temp/{baggage_tag.name}", baggage_tag)
-    baggage_tag_temp_path = default_storage.path(baggage_tag_path)
-
-    extracted_baggage_data = process_baggage_tag_image(baggage_tag_temp_path)
-    os.remove(baggage_tag_temp_path)
-    return extracted_baggage_data
-
-
 def normalize_score(score, min_score, max_score):
-    """
-    The normalize_score function takes a score and its minimum and maximum possible values,
-    then scales the score to a range between 0 and 1.
 
-    :param score: The score to be normalized
-    :param min_score: The minimum possible value of the score
-    :param max_score: The maximum possible value of the score
-    :return: The normalized score
-    """
     return (score - min_score) / (max_score - min_score)
 
 
-def calculate_weighted_sum_of_errors(passport_scores):
-    """
-    Calculate the weighted sum of errors for a given set of passport scores.
-
-    This function normalizes the scores for each aspect of the passport,
-    multiplies each normalized score by its corresponding weight, and then
-    sums the results to obtain the weighted sum of errors. The function also
-    returns the normalized scores.
-
-    :param passport_scores: A dictionary containing the scores for each
-        aspect of the passport, with the aspect as the key and the score
-        as the value.
-    :return: A tuple containing the weighted sum of errors (Decimal) and a
-        list of the normalized scores (list of Decimal).
-    """
+def calculate_weighted_sum_of_errors(scores):
     # Define the minimum and maximum possible scores for normalization
     min_score = Decimal("0")
     max_score = Decimal("100")
@@ -176,17 +136,35 @@ def calculate_weighted_sum_of_errors(passport_scores):
     # Normalize the scores using the normalize_score function
     normalized_scores = [
         normalize_score(score, min_score, max_score)
-        for score in passport_scores.values()
+        for score in scores.values()
+        if score is not None
     ]
 
     # Calculate the weighted sum of errors by multiplying each normalized
     # score by its corresponding weight and summing the results
     weighted_sum_of_errors = sum(
         (Decimal("1") - score) * ERROR_TYPE_WEIGHTS[error_type]
-        for score, error_type in zip(normalized_scores, passport_scores.keys())
+        for score, error_type in zip(normalized_scores, scores.keys())
+        if score is not None
     )
 
     return weighted_sum_of_errors, normalized_scores
+
+
+def calculate_total_weighted_sum_of_errors(passport_scores, flight_ticket_scores):
+    all_scores = passport_scores.copy()
+    if flight_ticket_scores:
+        all_scores.update(flight_ticket_scores)
+
+    weighted_sum_of_errors, normalized_scores = calculate_weighted_sum_of_errors(
+        all_scores
+    )
+
+    error_types = [
+        key for key, score in zip(all_scores.keys(), normalized_scores) if score < 0.5
+    ]
+
+    return weighted_sum_of_errors, error_types
 
 
 def process_passport(passport, request):
@@ -204,23 +182,55 @@ def process_passport(passport, request):
         else {"name": "", "dob": "", "gender": ""}
     )
 
-    passport_scores = is_passport_fraud(passport_actual_path, user_data)
+    passport_scores, passport_data = analyze_passport(passport_actual_path, user_data)
     print(f"Passport scores: {passport_scores}")
+    print(f"Passport data: {passport_data}")
 
-    # Calculate the weighted sum of errors and normalized scores
-    weighted_sum_of_errors, normalized_scores = calculate_weighted_sum_of_errors(
-        passport_scores
+    request.session["passport_data"] = passport_data
+
+    return passport_scores
+
+
+def process_flight_ticket(flight_ticket, request):
+    flight_ticket_path = default_storage.save(
+        f"temp/{flight_ticket.name}", flight_ticket
     )
-    print(f"Normalized scores: {normalized_scores}")
-    print(f"Weighted sum of errors: {weighted_sum_of_errors}")
+    flight_ticket_temp_path = default_storage.path(flight_ticket_path)
 
-    error_types = [
-        key
-        for key, score in zip(passport_scores.keys(), normalized_scores)
-        if score < 0.5
-    ]
+    extracted_flight_data = extract_ticket_info(flight_ticket_temp_path)
+    print(f"Extracted flight data: {extracted_flight_data}")
+    os.remove(flight_ticket_temp_path)
 
-    return weighted_sum_of_errors, error_types
+    # Retrieve personal details and passport data from the session
+    personal_details = request.session.get("personal_details", None)
+    passport_data = request.session.get("passport_data", None)
+
+    if personal_details and passport_data:
+        personal_details_name = personal_details.get("name", "")
+        passport_name = passport_data.get("name", "")
+
+        # Combine first_name and last_name to form the flight_ticket_name
+        flight_ticket_first_name = extracted_flight_data.get("first_name", "")
+        flight_ticket_last_name = extracted_flight_data.get("last_name", "")
+        flight_ticket_name = f"{flight_ticket_first_name} {flight_ticket_last_name}"
+
+        # Call compare_names function from rules.py
+        score, error_type = compare_names(
+            personal_details_name, passport_name, flight_ticket_name
+        )
+        print(f"compare_names score: {score}")
+        print(f"compare_names error_type: {error_type}")
+        return extracted_flight_data, {error_type: score}
+    return extracted_flight_data, None
+
+
+def process_baggage_tag(baggage_tag):
+    baggage_tag_path = default_storage.save(f"temp/{baggage_tag.name}", baggage_tag)
+    baggage_tag_temp_path = default_storage.path(baggage_tag_path)
+
+    extracted_baggage_data = process_baggage_tag_image(baggage_tag_temp_path)
+    os.remove(baggage_tag_temp_path)
+    return extracted_baggage_data
 
 
 def required_documents(request):
@@ -233,11 +243,9 @@ def required_documents(request):
             baggage_tag = form.cleaned_data.get("baggage_tag", None)
             passport = form.cleaned_data["passport"]
 
-            extracted_flight_data = process_flight_ticket(flight_ticket)
-            if extracted_flight_data:
-                print("\nExtracted flight data:")
-                for key, value in extracted_flight_data.items():
-                    print(f"{key}: {value}")
+            extracted_flight_data, flight_ticket_scores = process_flight_ticket(
+                flight_ticket, request
+            )
 
             if baggage_tag:
                 extracted_baggage_data = process_baggage_tag(baggage_tag)
@@ -247,19 +255,25 @@ def required_documents(request):
                         print(f"{key}: {value}")
 
             if passport:
-                weighted_sum_of_errors, error_types = process_passport(
-                    passport, request
-                )
-                print(
-                    f"Weighted sum of errors in Required Documents: {weighted_sum_of_errors}"
-                )
-                print(f"Error Types in Required Documents: {error_types}")
-                request.session["weighted_sum_of_errors"] = str(weighted_sum_of_errors)
-                request.session["error_types"] = error_types
+                passport_scores = process_passport(passport, request)
+            else:
+                passport_scores = None
 
-                return redirect("claim_summary")
+            (
+                weighted_sum_of_errors,
+                error_types,
+            ) = calculate_total_weighted_sum_of_errors(
+                passport_scores, flight_ticket_scores
+            )
+            print(
+                f"Weighted sum of errors in Required Documents: {weighted_sum_of_errors}"
+            )
+            print(f"Error Types in Required Documents: {error_types}")
+            request.session["weighted_sum_of_errors"] = str(weighted_sum_of_errors)
+            request.session["error_types"] = error_types
 
             return redirect("claim_summary")
+
         else:
             error_message = "Please make sure all required fields are filled correctly."
     else:
@@ -290,16 +304,17 @@ def get_severity_and_status(weighted_sum_of_errors, error_types):
                 status = "To Be Reviewed"
 
             if error_types:
-                passport_verification_errors = {
+                verification_errors = {
                     "name_mismatch": "The name on the passport does not match the provided name.",
                     "not_authentic": "The passport uploaded is not authentic.",
                     "unrecognized": "The passport uploaded is not recognized.",
                     "expired_passport": "The passport is expired.",
                     "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
                     "gender_mismatch": "The gender on the passport does not match the provided gender.",
+                    "flight_ticket_name_mismatch": "Name mismatch between personal details, passport, and flight ticket.",
                 }
                 for error in error_types:
-                    reasons.append(passport_verification_errors.get(error, ""))
+                    reasons.append(verification_errors.get(error, ""))
             return severity, status, reasons
 
 

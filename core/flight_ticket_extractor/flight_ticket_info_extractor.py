@@ -12,7 +12,7 @@ from core.common.extractor_utils import (
     setup_textract_client,
 )
 
-USE_AWS = False  # Set to False when you don't want to Free Tier credits
+USE_AWS = True  # Set to False when you don't want to Free Tier credits
 TICKET_TYPE_KEYWORDS = {
     "emirates": "Emirates",
     "flynas": "Flynas",

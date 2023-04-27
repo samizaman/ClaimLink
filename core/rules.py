@@ -1,20 +1,27 @@
-def check_passport_rules(response, name):
-    violated_rules = []
+from fuzzywuzzy import fuzz
+from decimal import Decimal
 
-    # Check name mismatch rule
-    extracted_name = response.get("result", {}).get("fullName", "")  # Get the full name from the response
-    if extracted_name:
-        extracted_name = (
-            extracted_name.lower()
-        )  # Convert the extracted name to lowercase
-    user_name = name.lower()  # Convert the user-provided name to lowercase
 
-    print(f"Extracted name from passport: {extracted_name}")
-    print(f"Name provided by user: {user_name}")
+def compare_names(personal_details_name, passport_name, flight_ticket_name):
+    personal_details_name = personal_details_name.lower()
+    passport_name = passport_name.lower()
+    flight_ticket_name = flight_ticket_name.lower()
 
-    if extracted_name and user_name != extracted_name:
-        violated_rules.append("name_mismatch")
+    similarity_score_1 = fuzz.ratio(personal_details_name, flight_ticket_name)
+    similarity_score_2 = fuzz.ratio(passport_name, flight_ticket_name)
 
-    # Add more rules here as needed
+    print(f"Similarity scores: {similarity_score_1}, {similarity_score_2}")
 
-    return violated_rules
+    # Set a threshold for the similarity score, e.g., 70
+    threshold = Decimal("70")
+
+    if (
+        Decimal(similarity_score_1) < threshold
+        or Decimal(similarity_score_2) < threshold
+    ):
+        error_type = "flight_ticket_name_mismatch"
+        return (
+            min(similarity_score_1, similarity_score_2),
+            error_type,
+        )  # Return the lower similarity score and error_type
+    return None, None  # Return None if there's no mismatch
