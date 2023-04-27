@@ -178,15 +178,32 @@ def process_extracted_flight_data(personal_details_name, passport_name, flight_d
     return errors
 
 
+def check_emirates_barcode(baggage_data):
+    airline_name = baggage_data.get("airline_name", "").lower()
+    barcode = baggage_data.get("barcode", "")
+
+    if airline_name == "emirates" and barcode and barcode[0] != "0":
+        error_type = "invalid_emirates_barcode"
+        return error_type
+    return None
+
+
 def process_extracted_baggage_data(flight_data, baggage_data):
+    errors = {}
+
     # Check for incorrect or unreadable baggage tag documents
     baggage_error = check_extracted_baggage_data(baggage_data)
 
-    # If an error is detected, return the error_type and a None score
+    # If an error is detected, add the error_type and a None score to the errors dictionary
     if baggage_error:
-        return {baggage_error: None}
+        errors[baggage_error] = None
 
-    errors = {}
+    # Check for invalid Emirates barcode
+    emirates_barcode_error = check_emirates_barcode(baggage_data)
+
+    # If an error is detected, add the error_type and a None score to the errors dictionary
+    if emirates_barcode_error:
+        errors[emirates_barcode_error] = None
 
     # Define a list of comparison functions
     comparison_functions = [
