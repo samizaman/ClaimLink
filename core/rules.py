@@ -12,12 +12,10 @@ def compare_personal_details_and_flight_ticket_name(
     flight_ticket_name = flight_ticket_name.lower()
 
     similarity_score = fuzz.ratio(personal_details_name, flight_ticket_name)
-    print(f"Personal details vs flight ticket similarity score: {similarity_score}")
 
     normalized_similarity_score = normalize_score(
         similarity_score, MIN_SCORE, MAX_SCORE
     )
-    print(f"Normalized similarity score: {normalized_similarity_score}")
 
     threshold = Decimal("0.7")
 
@@ -33,12 +31,10 @@ def compare_passport_and_flight_ticket_name(passport_name, flight_ticket_name):
     flight_ticket_name = flight_ticket_name.lower()
 
     similarity_score = fuzz.ratio(passport_name, flight_ticket_name)
-    print(f"Passport vs flight ticket similarity score: {similarity_score}")
 
     normalized_similarity_score = normalize_score(
         similarity_score, MIN_SCORE, MAX_SCORE
     )
-    print(f"Normalized similarity score: {normalized_similarity_score}")
 
     threshold = Decimal("0.7")
 
@@ -121,59 +117,88 @@ def check_booking_reference(flight_data, baggage_data):
     )  # Return None for both score and error_type if there's no mismatch
 
 
-def process_extracted_flight_data(
-    personal_details_name, passport_name, extracted_flight_data
-):
-    # Check for incorrect or unreadable flight ticket documents
-    error_type = check_extracted_flight_data(extracted_flight_data)
+def check_passenger_name(flight_data, baggage_data):
+    if not flight_data or not baggage_data:
+        return None, None
 
-    # If an error is detected, return the error_type and a None score
-    if error_type:
-        return {error_type: None}
-
-    # If no error is detected, proceed with the name comparison
-    flight_ticket_first_name = extracted_flight_data.get("first_name", "")
-    flight_ticket_last_name = extracted_flight_data.get("last_name", "")
+    flight_ticket_first_name = flight_data.get("first_name", "").lower()
+    flight_ticket_last_name = flight_data.get("last_name", "").lower()
     flight_ticket_name = f"{flight_ticket_first_name} {flight_ticket_last_name}"
 
-    score_1, error_type_1 = compare_personal_details_and_flight_ticket_name(
-        personal_details_name, flight_ticket_name
-    )
-    score_2, error_type_2 = compare_passport_and_flight_ticket_name(
-        passport_name, flight_ticket_name
-    )
+    baggage_passenger_name = baggage_data.get("passenger_name", "").lower()
 
-    # If any of the error_types is not None, return the corresponding error type and score
-    if error_type_1:
-        return {error_type_1: score_1}
-    if error_type_2:
-        return {error_type_2: score_2}
+    if flight_ticket_name and baggage_passenger_name:
+        passenger_name_similarity_score = fuzz.ratio(
+            flight_ticket_name, baggage_passenger_name
+        )
+        print(f"Passenger name similarity score: {passenger_name_similarity_score}")
 
-    # If everything is fine, return an empty dictionary
-    return {}
+        # Set a threshold for the similarity score, e.g., 80
+        threshold = Decimal("80")
+        if Decimal(passenger_name_similarity_score) < threshold:
+            error_type = "passenger_name_mismatch"
+            return (
+                Decimal(passenger_name_similarity_score),
+                error_type,
+            )  # Return the score and error_type if there's a mismatch
+
+    return (
+        None,
+        None,
+    )  # Return None for both score and error_type if there's no mismatch
+
+
+def process_extracted_flight_data(personal_details_name, passport_name, flight_data):
+    # Check for incorrect or unreadable flight ticket documents
+    flight_error = check_extracted_flight_data(flight_data)
+
+    # If an error is detected, return the error_type and a None score
+    if flight_error:
+        return {flight_error: None}
+
+    errors = {}
+
+    # Extract flight ticket name
+    first_name = flight_data.get("first_name", "")
+    last_name = flight_data.get("last_name", "")
+    ticket_name = f"{first_name} {last_name}"
+
+    # Define a list of comparison functions with their corresponding arguments
+    comparison_functions = [
+        (compare_personal_details_and_flight_ticket_name, personal_details_name),
+        (compare_passport_and_flight_ticket_name, passport_name),
+    ]
+
+    for compare_func, name in comparison_functions:
+        score, error_type = compare_func(name, ticket_name)
+        if error_type:
+            errors[error_type] = score
+
+    # Return the errors dictionary
+    return errors
 
 
 def process_extracted_baggage_data(flight_data, baggage_data):
     # Check for incorrect or unreadable baggage tag documents
-    error_type = check_extracted_baggage_data(baggage_data)
+    baggage_error = check_extracted_baggage_data(baggage_data)
 
     # If an error is detected, return the error_type and a None score
-    if error_type:
-        return {error_type: None}
+    if baggage_error:
+        return {baggage_error: None}
 
-    # If no error is detected, proceed with the airline name comparison
-    score, error_type = check_airline_name(flight_data, baggage_data)
+    errors = {}
 
-    # If error_type is not None, return the error type and score
-    if error_type:
-        return {error_type: score}
+    # Define a list of comparison functions
+    comparison_functions = [
+        check_airline_name,
+        check_booking_reference,
+        check_passenger_name,
+    ]
 
-    # Proceed with the booking reference comparison
-    score, error_type = check_booking_reference(flight_data, baggage_data)
+    for compare_func in comparison_functions:
+        score, error_type = compare_func(flight_data, baggage_data)
+        if error_type:
+            errors[error_type] = score
 
-    # If error_type is not None, return the error type and score
-    if error_type:
-        return {error_type: score}
-
-    # If everything is fine, return an empty dictionary
-    return {}
+    # Return the errors dictionary
+    return errors

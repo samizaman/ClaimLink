@@ -49,6 +49,7 @@ ERROR_TYPE_WEIGHTS = {
     "flight_ticket_personal_details_name_mismatch": Decimal("0.1"),
     "flight_ticket_passport_name_mismatch": Decimal("0.1"),
     "booking_reference_mismatch": Decimal("0.1"),
+    "passenger_name_mismatch": Decimal("0.1"),
 }
 
 
@@ -341,6 +342,7 @@ def get_severity_and_status(weighted_sum_of_errors, error_types):
                     "incorrect_baggage_tag": "The uploaded baggage tag document is incorrect or cannot be read properly.",
                     "airline_name_mismatch": "The airline name on the baggage tag does not match the airline name on the flight ticket.",
                     "booking_reference_mismatch": "The booking reference number on the baggage tag does not match the booking reference number on the flight ticket.",
+                    "passenger_name_mismatch": "The passenger name on the baggage tag does not match the passenger name on the flight ticket.",
                 }
                 for error in error_types:
                     reasons.append(verification_errors.get(error, ""))
