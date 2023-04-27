@@ -1,6 +1,6 @@
 {
   "regions": {
-    "flight_name": {
+    "airline_name": {
       "coordinates": [21, 50, 75, 28],
       "processing_function": ""
     },
