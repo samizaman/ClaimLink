@@ -226,6 +226,7 @@ def process_baggage_tag(baggage_tag):
     baggage_tag_temp_path = default_storage.path(baggage_tag_path)
 
     extracted_baggage_data = process_baggage_tag_image(baggage_tag_temp_path)
+    print(f"Extracted baggage data: {extracted_baggage_data}")
     os.remove(baggage_tag_temp_path)
     return extracted_baggage_data
 

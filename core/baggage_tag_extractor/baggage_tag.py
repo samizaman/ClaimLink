@@ -30,6 +30,14 @@ def read_barcode(image_path):
         return None
 
 
+def process_passenger_name(raw_passenger_name, airline_name):
+    # Split the name based on the '/'
+    split_name = raw_passenger_name.split("/")
+    passenger_name = f"{split_name[-1]} {split_name[0]}"
+
+    return passenger_name
+
+
 def extract_details(text, airline_config):
     # Extract airline name
     airline_name_match = re.search(
@@ -47,7 +55,11 @@ def extract_details(text, airline_config):
 
     # Extract passenger name
     passenger_name_match = re.search(airline_config["passenger_name_regex"], text)
-    passenger_name = passenger_name_match.group(0) if passenger_name_match else None
+    if passenger_name_match:
+        raw_passenger_name = passenger_name_match.group(0)
+        passenger_name = process_passenger_name(raw_passenger_name, airline_name)
+    else:
+        passenger_name = None
 
     return airline_name, flight_number, booking_ref, passenger_name
 
