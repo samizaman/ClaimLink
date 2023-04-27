@@ -108,8 +108,16 @@ def check_gender_match(response, user_data):
         user_gender = user_data.get("gender", "").lower()
 
         # Compare the extracted gender with the user's gender
-        if gender != user_gender:
-            return "gender_mismatch"
+        if gender == user_gender:
+            similarity_score = Decimal("100")
+        else:
+            similarity_score = Decimal("0")
+
+        # Set a threshold for the similarity score, e.g., 50
+        threshold = Decimal("50")
+
+        if similarity_score < threshold:
+            return similarity_score
     return None
 
 
@@ -143,6 +151,7 @@ def is_passport_fraud(passport_path, user_data):
             "name_mismatch": check_name_mismatch(response, user_data),
             "expired_passport": check_passport_expiry(response),
             "dob_mismatch": check_dob_match(response, user_data),
+            "gender_mismatch": check_gender_match(response, user_data),
         }
 
         # Filter out any None values from the scores dictionary
