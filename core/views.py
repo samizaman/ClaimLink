@@ -46,6 +46,8 @@ ERROR_TYPE_WEIGHTS = {
     "incorrect_flight_ticket": Decimal("0.1"),
     "incorrect_baggage_tag": Decimal("0.1"),
     "airline_name_mismatch": Decimal("0.1"),
+    "flight_ticket_personal_details_name_mismatch": Decimal("0.1"),
+    "flight_ticket_passport_name_mismatch": Decimal("0.1"),
 }
 
 
@@ -332,7 +334,8 @@ def get_severity_and_status(weighted_sum_of_errors, error_types):
                     "expired_passport": "The passport is expired.",
                     "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
                     "gender_mismatch": "The gender on the passport does not match the provided gender.",
-                    "flight_ticket_passenger_name_mismatch": "Name mismatch between personal details, passport, and flight ticket.",
+                    "personal_details_flight_ticket_name_mismatch": "Name mismatch between personal details and flight ticket.",
+                    "passport_flight_ticket_name_mismatch": "Name mismatch between passport and flight ticket.",
                     "incorrect_flight_ticket": "The uploaded flight ticket document is incorrect or cannot be read properly.",
                     "incorrect_baggage_tag": "The uploaded baggage tag document is incorrect or cannot be read properly.",
                     "airline_name_mismatch": "The airline name on the baggage tag does not match the airline name on the flight ticket.",

@@ -2,45 +2,51 @@ from decimal import Decimal
 
 from fuzzywuzzy import fuzz
 
-from core.utils import normalize_score
+from core.utils import MAX_SCORE, MIN_SCORE, normalize_score
 
 
-def compare_names(personal_details_name, passport_name, flight_ticket_name):
+def compare_personal_details_and_flight_ticket_name(
+    personal_details_name, flight_ticket_name
+):
     personal_details_name = personal_details_name.lower()
+    flight_ticket_name = flight_ticket_name.lower()
+
+    similarity_score = fuzz.ratio(personal_details_name, flight_ticket_name)
+    print(f"Personal details vs flight ticket similarity score: {similarity_score}")
+
+    normalized_similarity_score = normalize_score(
+        similarity_score, MIN_SCORE, MAX_SCORE
+    )
+    print(f"Normalized similarity score: {normalized_similarity_score}")
+
+    threshold = Decimal("0.7")
+
+    if normalized_similarity_score < threshold:
+        error_type = "flight_ticket_personal_details_name_mismatch"
+        return normalized_similarity_score, error_type
+
+    return None, None
+
+
+def compare_passport_and_flight_ticket_name(passport_name, flight_ticket_name):
     passport_name = passport_name.lower()
     flight_ticket_name = flight_ticket_name.lower()
 
-    similarity_score_1 = fuzz.ratio(personal_details_name, flight_ticket_name)
-    similarity_score_2 = fuzz.ratio(passport_name, flight_ticket_name)
+    similarity_score = fuzz.ratio(passport_name, flight_ticket_name)
+    print(f"Passport vs flight ticket similarity score: {similarity_score}")
 
-    print(f"Similarity scores: {similarity_score_1}, {similarity_score_2}")
+    normalized_similarity_score = normalize_score(
+        similarity_score, MIN_SCORE, MAX_SCORE
+    )
+    print(f"Normalized similarity score: {normalized_similarity_score}")
 
-    # Normalize the scores
-    min_score = Decimal("0")
-    max_score = Decimal("100")
-    normalized_similarity_score_1 = normalize_score(
-        similarity_score_1, min_score, max_score
-    )
-    normalized_similarity_score_2 = normalize_score(
-        similarity_score_2, min_score, max_score
-    )
-    print(
-        f"Normalized similarity scores: {normalized_similarity_score_1}, {normalized_similarity_score_2}"
-    )
-
-    # Set a threshold for the normalized similarity score, e.g., 0.7
     threshold = Decimal("0.7")
 
-    if (
-        normalized_similarity_score_1 < threshold
-        or normalized_similarity_score_2 < threshold
-    ):
-        error_type = "flight_ticket_passenger_name_mismatch"
-        return (
-            min(normalized_similarity_score_1, normalized_similarity_score_2),
-            error_type,
-        )  # Return the lower normalized similarity score and error_type
-    return None, None  # Return None if there's no mismatch
+    if normalized_similarity_score < threshold:
+        error_type = "flight_ticket_passport_name_mismatch"
+        return normalized_similarity_score, error_type
+
+    return None, None
 
 
 def check_extracted_flight_data(extracted_flight_data):
@@ -100,13 +106,18 @@ def process_extracted_flight_data(
     flight_ticket_last_name = extracted_flight_data.get("last_name", "")
     flight_ticket_name = f"{flight_ticket_first_name} {flight_ticket_last_name}"
 
-    score, error_type = compare_names(
-        personal_details_name, passport_name, flight_ticket_name
+    score_1, error_type_1 = compare_personal_details_and_flight_ticket_name(
+        personal_details_name, flight_ticket_name
+    )
+    score_2, error_type_2 = compare_passport_and_flight_ticket_name(
+        passport_name, flight_ticket_name
     )
 
-    # If error_type is not None, return the error type and score
-    if error_type:
-        return {error_type: score}
+    # If any of the error_types is not None, return the corresponding error type and score
+    if error_type_1:
+        return {error_type_1: score_1}
+    if error_type_2:
+        return {error_type_2: score_2}
 
     # If everything is fine, return an empty dictionary
     return {}
