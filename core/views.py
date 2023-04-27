@@ -23,7 +23,7 @@ from .forms import (
     PersonalDetailsForm,
     RequiredDocumentsForm,
 )
-from .rules import process_extracted_flight_data
+from .rules import process_extracted_baggage_data, process_extracted_flight_data
 from .utils import normalize_score
 
 load_dotenv()
@@ -42,8 +42,10 @@ ERROR_TYPE_WEIGHTS = {
     "gender_mismatch": Decimal("0.2"),
     "unrecognized": Decimal("0.1"),
     "not_authentic": Decimal("0.05"),
-    "flight_ticket_name_mismatch": Decimal("0.1"),
+    "flight_ticket_passenger_name_mismatch": Decimal("0.1"),
     "incorrect_flight_ticket": Decimal("0.1"),
+    "incorrect_baggage_tag": Decimal("0.1"),
+    "airline_name_mismatch": Decimal("0.1"),
 }
 
 
@@ -149,9 +151,11 @@ def calculate_weighted_sum_of_errors(scores):
     return weighted_sum_of_errors, normalized_scores
 
 
-def calculate_total_weighted_sum_of_errors(passport_scores, flight_ticket_scores):
-    # Combine the passport_scores and flight_ticket_scores dictionaries
-    all_scores = {**passport_scores, **flight_ticket_scores}
+def calculate_total_weighted_sum_of_errors(
+    passport_scores, flight_ticket_scores, baggage_tag_scores
+):
+    # Combine the passport_scores, flight_ticket_scores, and baggage_tag_scores dictionaries
+    all_scores = {**passport_scores, **flight_ticket_scores, **baggage_tag_scores}
 
     weighted_sum_of_errors, normalized_scores = calculate_weighted_sum_of_errors(
         all_scores
@@ -224,14 +228,27 @@ def process_flight_ticket(flight_ticket, request):
     return extracted_flight_data, None
 
 
-def process_baggage_tag(baggage_tag):
+def process_baggage_tag(baggage_tag, request):
     baggage_tag_path = default_storage.save(f"temp/{baggage_tag.name}", baggage_tag)
     baggage_tag_temp_path = default_storage.path(baggage_tag_path)
 
     extracted_baggage_data = process_baggage_tag_image(baggage_tag_temp_path)
     print(f"Extracted baggage data: {extracted_baggage_data}")
     os.remove(baggage_tag_temp_path)
-    return extracted_baggage_data
+
+    # Retrieve flight_data from the session
+    flight_data = request.session.get("flight_data", None)
+
+    if flight_data:
+        baggage_tag_scores = process_extracted_baggage_data(
+            flight_data, extracted_baggage_data
+        )
+        print("baggage_tag_scores: ", baggage_tag_scores)  # Debugging print statement
+
+        # Return the extracted baggage data along with the results
+        return extracted_baggage_data, baggage_tag_scores
+
+    return extracted_baggage_data, None
 
 
 def required_documents(request):
@@ -244,12 +261,19 @@ def required_documents(request):
             baggage_tag = form.cleaned_data.get("baggage_tag", None)
             passport = form.cleaned_data["passport"]
 
-            extracted_flight_data, flight_ticket_scores = process_flight_ticket(
-                flight_ticket, request
-            )
+            if flight_ticket:
+                extracted_flight_data, flight_ticket_scores = process_flight_ticket(
+                    flight_ticket, request
+                )
+            else:
+                extracted_flight_data, flight_ticket_scores = None, None
 
             if baggage_tag:
-                extracted_baggage_data = process_baggage_tag(baggage_tag)
+                extracted_baggage_data, baggage_tag_scores = process_baggage_tag(
+                    baggage_tag, request
+                )
+            else:
+                extracted_baggage_data, baggage_tag_scores = None, None
 
             if passport:
                 passport_scores = process_passport(passport, request)
@@ -260,7 +284,7 @@ def required_documents(request):
                 weighted_sum_of_errors,
                 error_types,
             ) = calculate_total_weighted_sum_of_errors(
-                passport_scores, flight_ticket_scores
+                passport_scores, flight_ticket_scores, baggage_tag_scores
             )
             print(
                 f"Weighted sum of errors in Required Documents: {weighted_sum_of_errors}"
@@ -308,8 +332,10 @@ def get_severity_and_status(weighted_sum_of_errors, error_types):
                     "expired_passport": "The passport is expired.",
                     "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
                     "gender_mismatch": "The gender on the passport does not match the provided gender.",
-                    "flight_ticket_name_mismatch": "Name mismatch between personal details, passport, and flight ticket.",
+                    "flight_ticket_passenger_name_mismatch": "Name mismatch between personal details, passport, and flight ticket.",
                     "incorrect_flight_ticket": "The uploaded flight ticket document is incorrect or cannot be read properly.",
+                    "incorrect_baggage_tag": "The uploaded baggage tag document is incorrect or cannot be read properly.",
+                    "airline_name_mismatch": "The airline name on the baggage tag does not match the airline name on the flight ticket.",
                 }
                 for error in error_types:
                     reasons.append(verification_errors.get(error, ""))
