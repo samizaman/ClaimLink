@@ -7,16 +7,31 @@ class ClaimAdmin(admin.ModelAdmin):
     list_display = (
         "claim_reference_number",
         "customer",
-        "id",
         "date_of_loss",
+        "claim_amount",
+        "status",
+        "severity",
         "timestamp",
     )
-    list_filter = ("date_of_loss", "timestamp")
+    list_filter = (
+        "status",
+        "severity",
+        "country_of_incident",
+    )
+    search_fields = ("customer__name", "description_of_loss", "claim_reference_number")
     ordering = ("-timestamp",)
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ("name", "email", "phone_number", "dob", "gender", "timestamp")
+    list_display = (
+        "name",
+        "email",
+        "phone_number",
+        "dob",
+        "gender",
+        "created_on",
+        "timestamp",
+    )
     search_fields = ("name", "email", "phone_number", "gender")
     ordering = ("-timestamp",)
 
@@ -32,6 +47,8 @@ class BlockAdmin(admin.ModelAdmin):
         "previous_block_hash",
         "timestamp",
         "blockchain",
+        "customer",
+        "claim",
     )
     search_fields = ("block_number", "block_hash", "previous_block_hash")
     list_filter = ("blockchain",)
