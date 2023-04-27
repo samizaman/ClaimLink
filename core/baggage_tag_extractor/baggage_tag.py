@@ -98,7 +98,7 @@ def process_baggage_tag(image_path, textract_client):
     return {
         "airline_name": airline_name,
         "flight_number": flight_number,
-        "booking_ref": booking_ref,
+        "booking_reference_number": booking_ref,
         "passenger_name": passenger_name,
         "barcode": barcode,
     }
