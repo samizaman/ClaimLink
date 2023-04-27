@@ -203,6 +203,9 @@ def process_flight_ticket(flight_ticket, request):
     print(f"Extracted flight data: {extracted_flight_data}")
     os.remove(flight_ticket_temp_path)
 
+    # Store the extracted_flight_data in the session
+    request.session["flight_data"] = extracted_flight_data
+
     # Retrieve personal details and passport data from the session
     personal_details = request.session.get("personal_details", None)
     passport_data = request.session.get("passport_data", None)
