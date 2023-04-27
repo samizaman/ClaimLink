@@ -86,9 +86,17 @@ def check_dob_match(response, user_data):
             # Convert the user date string to a datetime object
             user_dob = datetime.strptime(user_dob_str, "%Y-%m-%d")
 
-            # Compare the extracted date of birth with the user's date of birth
-            if dob != user_dob:
-                return "dob_mismatch"
+            # Calculate the absolute difference in days
+            date_difference = abs((dob - user_dob).days)
+
+            # Calculate the similarity score (100 - date_difference)
+            similarity_score = 100 - date_difference
+
+            # Set the max_allowed_difference to 0, as the dates should be exactly the same
+            max_allowed_difference = 0
+
+            if date_difference > max_allowed_difference:
+                return Decimal(similarity_score)
     return None
 
 
@@ -134,6 +142,7 @@ def is_passport_fraud(passport_path, user_data):
         scores = {
             "name_mismatch": check_name_mismatch(response, user_data),
             "expired_passport": check_passport_expiry(response),
+            "dob_mismatch": check_dob_match(response, user_data),
         }
 
         # Filter out any None values from the scores dictionary
