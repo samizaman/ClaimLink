@@ -106,8 +106,8 @@ def check_booking_reference(flight_data, baggage_data):
             f"Booking reference similarity score: {booking_reference_similarity_score}"
         )
 
-        # Set a threshold for the similarity score, e.g., 90
-        threshold = Decimal("90")
+        # Set a threshold for the similarity score, e.g., 80
+        threshold = Decimal("80")
         if Decimal(booking_reference_similarity_score) < threshold:
             error_type = "booking_reference_mismatch"
             return (
