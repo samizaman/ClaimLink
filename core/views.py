@@ -29,9 +29,17 @@ load_dotenv()
 goerli_url = f"https://goerli.infura.io/v3/{os.getenv('INFURA_PROJECT_ID')}"
 w3 = Web3(Web3.HTTPProvider(goerli_url))
 SEVERITY_THRESHOLDS = {
-    "Low": Decimal("90"),
-    "Medium": Decimal("75"),
-    "High": Decimal("0"),
+    "Low": Decimal("0.2"),
+    "Medium": Decimal("0.5"),
+    "High": Decimal("1.0"),
+}
+ERROR_TYPE_WEIGHTS = {
+    "name_mismatch": Decimal("0.25"),
+    "expired_passport": Decimal("0.2"),
+    "dob_mismatch": Decimal("0.2"),
+    "gender_mismatch": Decimal("0.2"),
+    "unrecognized": Decimal("0.1"),
+    "not_authentic": Decimal("0.05"),
 }
 
 
@@ -146,31 +154,21 @@ def normalize_score(score, min_score, max_score):
     return (score - min_score) / (max_score - min_score)
 
 
-def calculate_composite_score(passport_scores):
-    """
-    The calculate_composite_score function takes a dictionary of passport_scores and calculates
-    a composite score by normalizing the individual scores and then averaging them.
+def calculate_weighted_sum_of_errors(passport_scores):
+    min_score = Decimal("0")
+    max_score = Decimal("100")
 
-    :param passport_scores: A dictionary containing the scores to be combined
-    :return: The calculated composite score
-    """
-    # Define the minimum and maximum score possible for each individual score
-    min_score = 0
-    max_score = 100
-
-    # Normalize the scores using the normalize_score function, and create a list of normalized scores
     normalized_scores = [
         normalize_score(score, min_score, max_score)
         for score in passport_scores.values()
     ]
 
-    # Calculate the composite score by taking the average of the normalized scores
-    composite_score = sum(normalized_scores) / len(normalized_scores)
+    weighted_sum_of_errors = sum(
+        (Decimal("1") - score) * ERROR_TYPE_WEIGHTS[error_type]
+        for score, error_type in zip(normalized_scores, passport_scores.keys())
+    )
 
-    # Convert the composite score back to the 0-100 range
-    composite_score *= 100
-
-    return composite_score
+    return weighted_sum_of_errors, normalized_scores
 
 
 def process_passport(passport, request):
@@ -191,14 +189,20 @@ def process_passport(passport, request):
     passport_scores = is_passport_fraud(passport_actual_path, user_data)
     print(f"Passport scores: {passport_scores}")
 
-    # Calculate the composite score
-    composite_score = calculate_composite_score(passport_scores)
-    print(f"Composite score: {composite_score}")
+    # Calculate the weighted sum of errors and normalized scores
+    weighted_sum_of_errors, normalized_scores = calculate_weighted_sum_of_errors(
+        passport_scores
+    )
+    print(f"Normalized scores: {normalized_scores}")
+    print(f"Weighted sum of errors: {weighted_sum_of_errors}")
 
-    # You may still want to identify which errors occurred, if any, for providing detailed feedback
-    error_types = [key for key, value in passport_scores.items() if value > 0]
+    error_types = [
+        key
+        for key, score in zip(passport_scores.keys(), normalized_scores)
+        if score < 0.5
+    ]
 
-    return composite_score, error_types
+    return weighted_sum_of_errors, error_types
 
 
 def required_documents(request):
@@ -225,10 +229,14 @@ def required_documents(request):
                         print(f"{key}: {value}")
 
             if passport:
-                composite_score, error_types = process_passport(passport, request)
-                print(f"Composite Score in Required Documents: {composite_score}")
+                weighted_sum_of_errors, error_types = process_passport(
+                    passport, request
+                )
+                print(
+                    f"Weighted sum of errors in Required Documents: {weighted_sum_of_errors}"
+                )
                 print(f"Error Types in Required Documents: {error_types}")
-                request.session["composite_score"] = str(composite_score)
+                request.session["weighted_sum_of_errors"] = str(weighted_sum_of_errors)
                 request.session["error_types"] = error_types
 
                 return redirect("claim_summary")
@@ -251,16 +259,15 @@ def required_documents(request):
     )
 
 
-def get_severity_and_status(score, error_types):
+def get_severity_and_status(weighted_sum_of_errors, error_types):
     reasons = []
+    # Iterate over the severity thresholds
     for severity, threshold in SEVERITY_THRESHOLDS.items():
-        if score >= threshold:
+        if weighted_sum_of_errors <= threshold:
             # If the severity is "Low" and there are no errors in error_types
             # (i.e., error_types is empty), set status to "Approved"
             if severity == "Low" and not error_types:
                 status = "Approved"
-            elif score < Decimal("50"):
-                status = "Rejected"
             else:
                 status = "To Be Reviewed"
 
@@ -268,7 +275,7 @@ def get_severity_and_status(score, error_types):
                 passport_verification_errors = {
                     "name_mismatch": "The name on the passport does not match the provided name.",
                     "not_authentic": "The passport uploaded is not authentic.",
-                    "unrecognized": "The passport uploaded is not recognized. Please upload a clear and fully visible image.",
+                    "unrecognized": "The passport uploaded is not recognized.",
                     "expired_passport": "The passport is expired.",
                     "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
                     "gender_mismatch": "The gender on the passport does not match the provided gender.",
@@ -294,15 +301,19 @@ def claim_summary(request):
             # Create new Claim instance
             claim = Claim(customer=customer, **claim_details)
 
-            # Calculate severity and set claim status based on composite score
-            composite_score = Decimal(request.session.get("composite_score", "0"))
+            # Calculate severity and set claim status based on weighted_sum_of_errors
+            weighted_sum_of_errors = Decimal(
+                request.session.get("weighted_sum_of_errors", "0")
+            )
             error_types = request.session.get("error_types", [])
 
-            print(f"Composite Score in Claim Summary function: {composite_score}")
+            print(
+                f"Weighted sum of errors in Claim Summary function: {weighted_sum_of_errors}"
+            )
             print(f"Error Types in Claim Summary function: {error_types}")
 
             claim.severity, claim.status, claim.reasons = get_severity_and_status(
-                composite_score, error_types
+                weighted_sum_of_errors, error_types
             )
 
             # Convert reasons list to a string and save it

@@ -40,14 +40,20 @@ def check_name_mismatch(response, user_data):
 def check_passport_authentication(response):
     if response.get("authentication"):
         authentication_result = response["authentication"]
-        if authentication_result["score"] <= 0.5:
-            return "not_authentic"
+        authentication_score = authentication_result["score"]
+
+        # Set a threshold for the authentication score, e.g., 0.5
+        threshold = Decimal("0.5")
+        if authentication_score <= threshold:
+            # Return the authentication score if the passport is not authentic
+            return Decimal(authentication_score) * 100
     return None
 
 
 def check_passport_recognition(response):
     if response.get("authentication") is None:
-        return "unrecognized"
+        # Indicate an unrecognized document with a score of 0
+        return Decimal("0")
     return None
 
 
@@ -59,16 +65,12 @@ def check_passport_expiry(response):
         expiry_date_str = expiry_date_str.replace("/", "")
         expiry_date = datetime.strptime(expiry_date_str, "%Y%m%d")
 
-        # Calculate the number of days between the current date and the passport expiry date
-        days_to_expiry = (expiry_date - datetime.now()).days
-
-        # Normalize the score to a range of 0 to 100
-        max_days_to_expiry = 365 * 10  # Assuming the maximum days to expiry is 10 years
-        similarity_score = (days_to_expiry / max_days_to_expiry) * 100
-
-        # If the passport is expired, return the similarity score
+        # If the passport is expired, return a similarity score of 0
         if expiry_date < datetime.now():
-            return Decimal(similarity_score)
+            return Decimal("0")
+        # If the passport is not expired, return a similarity score of 100
+        else:
+            return Decimal("100")
     return None
 
 
@@ -86,17 +88,12 @@ def check_dob_match(response, user_data):
             # Convert the user date string to a datetime object
             user_dob = datetime.strptime(user_dob_str, "%Y-%m-%d")
 
-            # Calculate the absolute difference in days
-            date_difference = abs((dob - user_dob).days)
-
-            # Calculate the similarity score (100 - date_difference)
-            similarity_score = 100 - date_difference
-
-            # Set the max_allowed_difference to 0, as the dates should be exactly the same
-            max_allowed_difference = 0
-
-            if date_difference > max_allowed_difference:
-                return Decimal(similarity_score)
+            # If the dates are the same, return a similarity score of 100
+            if dob == user_dob:
+                return Decimal("100")
+            # If the dates are different, return a similarity score of 0
+            else:
+                return Decimal("0")
     return None
 
 
@@ -152,6 +149,8 @@ def is_passport_fraud(passport_path, user_data):
             "expired_passport": check_passport_expiry(response),
             "dob_mismatch": check_dob_match(response, user_data),
             "gender_mismatch": check_gender_match(response, user_data),
+            "not_authentic": check_passport_authentication(response),
+            "unrecognized": check_passport_recognition(response),
         }
 
         # Filter out any None values from the scores dictionary
