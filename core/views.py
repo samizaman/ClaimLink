@@ -23,7 +23,8 @@ from .forms import (
     PersonalDetailsForm,
     RequiredDocumentsForm,
 )
-from .rules import compare_names
+from .rules import process_extracted_flight_data
+from .utils import normalize_score
 
 load_dotenv()
 
@@ -42,6 +43,7 @@ ERROR_TYPE_WEIGHTS = {
     "unrecognized": Decimal("0.1"),
     "not_authentic": Decimal("0.05"),
     "flight_ticket_name_mismatch": Decimal("0.1"),
+    "incorrect_flight_ticket": Decimal("0.1"),
 }
 
 
@@ -123,11 +125,6 @@ def create_rejected_claim(customer, reason):
     return claim
 
 
-def normalize_score(score, min_score, max_score):
-
-    return (score - min_score) / (max_score - min_score)
-
-
 def calculate_weighted_sum_of_errors(scores):
     # Define the minimum and maximum possible scores for normalization
     min_score = Decimal("0")
@@ -135,34 +132,39 @@ def calculate_weighted_sum_of_errors(scores):
 
     # Normalize the scores using the normalize_score function
     normalized_scores = [
-        normalize_score(score, min_score, max_score)
+        normalize_score(score, min_score, max_score) if score is not None else None
         for score in scores.values()
-        if score is not None
     ]
 
     # Calculate the weighted sum of errors by multiplying each normalized
     # score by its corresponding weight and summing the results
     weighted_sum_of_errors = sum(
         (Decimal("1") - score) * ERROR_TYPE_WEIGHTS[error_type]
-        for score, error_type in zip(normalized_scores, scores.keys())
         if score is not None
+        else ERROR_TYPE_WEIGHTS[error_type]
+        for score, error_type in zip(normalized_scores, scores.keys())
     )
-
+    print(f"Weighted sum of errors: {weighted_sum_of_errors}")
+    print(f"Normalized scores: {normalized_scores}")
     return weighted_sum_of_errors, normalized_scores
 
 
 def calculate_total_weighted_sum_of_errors(passport_scores, flight_ticket_scores):
-    all_scores = passport_scores.copy()
-    if flight_ticket_scores:
-        all_scores.update(flight_ticket_scores)
+    # Combine the passport_scores and flight_ticket_scores dictionaries
+    all_scores = {**passport_scores, **flight_ticket_scores}
 
     weighted_sum_of_errors, normalized_scores = calculate_weighted_sum_of_errors(
         all_scores
     )
 
+    # Get the error types where the normalized score is below 0.5
     error_types = [
-        key for key, score in zip(all_scores.keys(), normalized_scores) if score < 0.5
+        key
+        for key, score in zip(all_scores.keys(), normalized_scores)
+        if score is None or (score is not None and score < 0.5)
     ]
+
+    print(f"Total weighted sum of errors: {weighted_sum_of_errors}")
 
     return weighted_sum_of_errors, error_types
 
@@ -209,18 +211,13 @@ def process_flight_ticket(flight_ticket, request):
         personal_details_name = personal_details.get("name", "")
         passport_name = passport_data.get("name", "")
 
-        # Combine first_name and last_name to form the flight_ticket_name
-        flight_ticket_first_name = extracted_flight_data.get("first_name", "")
-        flight_ticket_last_name = extracted_flight_data.get("last_name", "")
-        flight_ticket_name = f"{flight_ticket_first_name} {flight_ticket_last_name}"
-
-        # Call compare_names function from rules.py
-        score, error_type = compare_names(
-            personal_details_name, passport_name, flight_ticket_name
+        flight_ticket_scores = process_extracted_flight_data(
+            personal_details_name, passport_name, extracted_flight_data
         )
-        print(f"compare_names score: {score}")
-        print(f"compare_names error_type: {error_type}")
-        return extracted_flight_data, {error_type: score}
+        print(
+            "Flight ticket scores: ", flight_ticket_scores
+        )  # Debugging print statement
+        return extracted_flight_data, flight_ticket_scores
     return extracted_flight_data, None
 
 
@@ -312,6 +309,7 @@ def get_severity_and_status(weighted_sum_of_errors, error_types):
                     "dob_mismatch": "The date of birth on the passport does not match the provided date of birth.",
                     "gender_mismatch": "The gender on the passport does not match the provided gender.",
                     "flight_ticket_name_mismatch": "Name mismatch between personal details, passport, and flight ticket.",
+                    "incorrect_flight_ticket": "The uploaded flight ticket document is incorrect or cannot be read properly.",
                 }
                 for error in error_types:
                     reasons.append(verification_errors.get(error, ""))
