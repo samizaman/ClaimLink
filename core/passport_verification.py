@@ -59,9 +59,16 @@ def check_passport_expiry(response):
         expiry_date_str = expiry_date_str.replace("/", "")
         expiry_date = datetime.strptime(expiry_date_str, "%Y%m%d")
 
-        # Compare the extracted expiry date with the current date
+        # Calculate the number of days between the current date and the passport expiry date
+        days_to_expiry = (expiry_date - datetime.now()).days
+
+        # Normalize the score to a range of 0 to 100
+        max_days_to_expiry = 365 * 10  # Assuming the maximum days to expiry is 10 years
+        similarity_score = (days_to_expiry / max_days_to_expiry) * 100
+
+        # If the passport is expired, return the similarity score
         if expiry_date < datetime.now():
-            return "expired_passport"
+            return Decimal(similarity_score)
     return None
 
 
@@ -126,6 +133,7 @@ def is_passport_fraud(passport_path, user_data):
         # Call each rule-checking function and aggregate the results
         scores = {
             "name_mismatch": check_name_mismatch(response, user_data),
+            "expired_passport": check_passport_expiry(response),
         }
 
         # Filter out any None values from the scores dictionary
