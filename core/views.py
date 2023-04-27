@@ -155,14 +155,32 @@ def normalize_score(score, min_score, max_score):
 
 
 def calculate_weighted_sum_of_errors(passport_scores):
+    """
+    Calculate the weighted sum of errors for a given set of passport scores.
+
+    This function normalizes the scores for each aspect of the passport,
+    multiplies each normalized score by its corresponding weight, and then
+    sums the results to obtain the weighted sum of errors. The function also
+    returns the normalized scores.
+
+    :param passport_scores: A dictionary containing the scores for each
+        aspect of the passport, with the aspect as the key and the score
+        as the value.
+    :return: A tuple containing the weighted sum of errors (Decimal) and a
+        list of the normalized scores (list of Decimal).
+    """
+    # Define the minimum and maximum possible scores for normalization
     min_score = Decimal("0")
     max_score = Decimal("100")
 
+    # Normalize the scores using the normalize_score function
     normalized_scores = [
         normalize_score(score, min_score, max_score)
         for score in passport_scores.values()
     ]
 
+    # Calculate the weighted sum of errors by multiplying each normalized
+    # score by its corresponding weight and summing the results
     weighted_sum_of_errors = sum(
         (Decimal("1") - score) * ERROR_TYPE_WEIGHTS[error_type]
         for score, error_type in zip(normalized_scores, passport_scores.keys())
