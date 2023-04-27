@@ -95,7 +95,7 @@ def process_booking_reference_number(region_name, text, ticket_type=None):
     return {region_name: text.strip()}
 
 
-def process_flight_name(region_name, text, ticket_type=None):
+def process_airline_name(region_name, text, ticket_type=None):
     if not text.isalnum() or len(text) < 4:
         return {region_name: None}
     return {region_name: text.strip()}
@@ -135,7 +135,7 @@ def process_document(image, config, textract_client, ticket_type=None):
                 "process_name": process_name,
                 "process_date": process_date,
                 "process_booking_reference_number": process_booking_reference_number,
-                "process_flight_name": process_flight_name,
+                "process_airline_name": process_airline_name,
             }
             processing_function = processing_functions.get(processing_function_name)
 
