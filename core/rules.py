@@ -44,10 +44,10 @@ def compare_names(personal_details_name, passport_name, flight_ticket_name):
 
 
 def check_extracted_flight_data(extracted_flight_data):
-    print("Checking extracted flight data...")  # Debugging print statement
+    # print("Checking extracted flight data...")  # Debugging print statement
     if all(value is None for value in extracted_flight_data.values()):
         error_type = "incorrect_flight_ticket"
-        print("Error detected: ", error_type)  # Debugging print statement
+        # print("Error detected: ", error_type)  # Debugging print statement
         return error_type
     return None
 
