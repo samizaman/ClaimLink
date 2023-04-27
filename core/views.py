@@ -122,16 +122,6 @@ def coverage_items_selection(request):
     )
 
 
-def create_rejected_claim(customer, reason):
-    claim = Claim(
-        customer=customer,
-        status="rejected",
-        reasons=reason,
-    )
-    claim.save()
-    return claim
-
-
 def calculate_weighted_sum_of_errors(scores):
     # Define the minimum and maximum possible scores for normalization
     min_score = Decimal("0")
