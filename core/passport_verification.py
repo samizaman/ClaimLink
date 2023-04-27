@@ -137,12 +137,6 @@ def analyze_passport(passport_path, user_data):
             "gender": response.get("result", {}).get("sex", ""),
         }
 
-        # Print the extracted data
-        print("\nIDAnalyzer API Extracted Passport Data:")
-        for key, value in extracted_data.items():
-            print(f"{key.capitalize()}: {value}")
-        print()  # Add an empty line for better readability
-
         # Call each rule-checking function and aggregate the results
         scores = {
             "name_mismatch": check_name_mismatch(response, user_data),

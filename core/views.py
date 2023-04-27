@@ -246,10 +246,6 @@ def required_documents(request):
 
             if baggage_tag:
                 extracted_baggage_data = process_baggage_tag(baggage_tag)
-                if extracted_baggage_data:
-                    print("\nExtracted baggage data:")
-                    for key, value in extracted_baggage_data.items():
-                        print(f"{key}: {value}")
 
             if passport:
                 passport_scores = process_passport(passport, request)

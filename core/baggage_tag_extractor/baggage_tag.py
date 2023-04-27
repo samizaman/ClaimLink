@@ -17,7 +17,7 @@ load_dotenv()
 AIRLINE_CONFIGS = load_config(
     os.path.join(os.path.dirname(__file__), "configs", "airline_configs.json")
 )
-USE_AWS = False  # Set to False when you don't want to Free Tier credits
+USE_AWS = True  # Set to False when you don't want to Free Tier credits
 
 
 def read_barcode(image_path):
@@ -89,7 +89,6 @@ def process_baggage_tag(image_path, textract_client):
         "booking_ref": booking_ref,
         "passenger_name": passenger_name,
         "barcode": barcode,
-        "extracted_text": text,
     }
 
 

@@ -33,8 +33,8 @@ def extract_text_and_confidence(response):
             extracted_data.append(
                 {"Text": block["Text"], "Confidence": block["Confidence"]}
             )
-    print("===== Extracted Data =====")
-    print(extracted_data)
+    # print("===== Extracted Data =====")
+    # print(extracted_data)
     return extracted_data
 
 
