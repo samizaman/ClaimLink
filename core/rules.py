@@ -91,6 +91,36 @@ def check_airline_name(flight_data, baggage_data):
     )  # Return None for both score and error_type if there's no mismatch
 
 
+def check_booking_reference(flight_data, baggage_data):
+    if not flight_data or not baggage_data:
+        return None, None
+
+    flight_booking_reference = flight_data.get("booking_reference_number", "").lower()
+    baggage_booking_reference = baggage_data.get("booking_reference_number", "").lower()
+
+    if flight_booking_reference and baggage_booking_reference:
+        booking_reference_similarity_score = fuzz.ratio(
+            flight_booking_reference, baggage_booking_reference
+        )
+        print(
+            f"Booking reference similarity score: {booking_reference_similarity_score}"
+        )
+
+        # Set a threshold for the similarity score, e.g., 90
+        threshold = Decimal("90")
+        if Decimal(booking_reference_similarity_score) < threshold:
+            error_type = "booking_reference_mismatch"
+            return (
+                Decimal(booking_reference_similarity_score),
+                error_type,
+            )  # Return the score and error_type if there's a mismatch
+
+    return (
+        None,
+        None,
+    )  # Return None for both score and error_type if there's no mismatch
+
+
 def process_extracted_flight_data(
     personal_details_name, passport_name, extracted_flight_data
 ):
@@ -133,6 +163,13 @@ def process_extracted_baggage_data(flight_data, baggage_data):
 
     # If no error is detected, proceed with the airline name comparison
     score, error_type = check_airline_name(flight_data, baggage_data)
+
+    # If error_type is not None, return the error type and score
+    if error_type:
+        return {error_type: score}
+
+    # Proceed with the booking reference comparison
+    score, error_type = check_booking_reference(flight_data, baggage_data)
 
     # If error_type is not None, return the error type and score
     if error_type:
