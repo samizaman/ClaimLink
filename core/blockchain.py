@@ -20,6 +20,15 @@ w3 = Web3(Web3.HTTPProvider(goerli_url))
 
 
 def prepare_claim_transaction(claim):
+    """
+    Prepare a transaction to add a claim to the Ethereum blockchain.
+
+    Args:
+        claim (dict): The claim data as a dictionary.
+
+    Returns:
+        dict: A dictionary containing the prepared transaction details.
+    """
     account_address = os.getenv("ACCOUNT_ADDRESS")
 
     # Fetch the current gas price from the Ethereum network
@@ -32,19 +41,34 @@ def prepare_claim_transaction(claim):
 
     # Set up the transaction details
     transaction = {
-        "to": account_address,
-        "value": w3.to_wei(0, "ether"),
-        "maxFeePerGas": adjusted_gas_price,
-        "maxPriorityFeePerGas": adjusted_gas_price,
-        "nonce": w3.eth.get_transaction_count(w3.to_checksum_address(account_address)),
-        "chainId": chain_id,
-        "data": w3.to_hex(json.dumps(claim).encode("utf-8")),
+        "to": account_address,  # The destination address of the transaction
+        "value": w3.to_wei(
+            0, "ether"
+        ),  # The amount of Ether being transferred (0 in this case)
+        "maxFeePerGas": adjusted_gas_price,  # The maximum fee per gas unit for the transaction
+        "maxPriorityFeePerGas": adjusted_gas_price,  # The maximum priority fee per gas unit for the transaction
+        "nonce": w3.eth.get_transaction_count(
+            w3.to_checksum_address(account_address)
+        ),  # The nonce of the sender's account, which is the number of transactions sent from the account
+        "chainId": chain_id,  # The chain ID of the Ethereum network being used
+        "data": w3.to_hex(
+            json.dumps(claim).encode("utf-8")
+        ),  # The data being sent with the transaction, in this case, the claim details serialized and encoded as a hex string
     }
 
     return transaction
 
 
 def add_claim_to_blockchain(claim):
+    """
+    Add a claim to the Ethereum blockchain.
+
+    Args:
+        claim (dict): The claim data as a dictionary.
+
+    Returns:
+        bool: True if the claim was successfully added to the blockchain, False otherwise.
+    """
     private_key = os.getenv("PRIVATE_KEY")
 
     # Check if connected to Ethereum network
