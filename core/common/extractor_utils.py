@@ -27,14 +27,18 @@ def process_text_detection(client, document):
 
 
 def extract_text_and_confidence(response):
+    """
+    Extract text and confidence values from the Textract response.
+
+    :param response: dict, Textract response containing text blocks
+    :return: list, extracted data containing text and confidence values
+    """
     extracted_data = []
     for block in response["Blocks"]:
         if block["BlockType"] in ["LINE"]:
             extracted_data.append(
                 {"Text": block["Text"], "Confidence": block["Confidence"]}
             )
-    # print("===== Extracted Data =====")
-    # print(extracted_data)
     return extracted_data
 
 
@@ -45,6 +49,16 @@ def extract_text(
     image_path=None,
     use_aws=True,
 ):
+    """
+    Extract text from the input image or image path using AWS Textract.
+
+    :param image: ndarray, input image
+    :param region_coordinates: tuple, (x, y, w, h) region coordinates
+    :param textract_client: boto3 Textract client, used for extracting text from the image
+    :param image_path: str, path to the input image
+    :param use_aws: bool, True if using AWS Textract, False otherwise
+    :return: str, extracted text
+    """
     if not use_aws:
         print("AWS API usage is disabled.")
         return ""
