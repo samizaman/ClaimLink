@@ -102,3 +102,37 @@ class ClaimDetailsViewTests(TestCase):
         form = response.context.get("form")
         self.assertFalse(form.is_valid())
         self.assertEqual(response.status_code, 200)
+
+
+class CoverageItemsSelectionViewTests(TestCase):
+    def test_coverage_items_selection_view_uses_correct_template(self):
+        response = self.client.get(reverse("coverage_items_selection"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "coverage_items_selection.html")
+
+    def test_coverage_items_selection_view_form_submission(self):
+        response = self.client.post(
+            reverse("coverage_items_selection"),
+            {
+                "coverage_items": ["Flight Delay or Abandonment", "Baggage Loss"],
+            },
+        )
+
+        if response.status_code != 302:
+            form = response.context.get("form")
+            print("Form errors:", form.errors)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("required_documents"))
+
+    def test_coverage_items_selection_view_form_submission_with_errors(self):
+        response = self.client.post(
+            reverse("coverage_items_selection"),
+            {
+                "coverage_items": ["Flight Delay or Abandonment", "Invalid Item"],
+            },
+        )
+
+        form = response.context.get("form")
+        self.assertFalse(form.is_valid())
+        self.assertEqual(response.status_code, 200)
