@@ -123,34 +123,56 @@ def coverage_items_selection(request):
 
 
 def calculate_weighted_sum_of_errors(scores):
+    """
+    Calculates the weighted sum of errors and normalized scores for a given dictionary of scores.
+
+    Args:
+        scores (dict): A dictionary containing error types as keys and their respective scores as values.
+
+    Returns:
+        tuple: A tuple containing the weighted sum of errors (Decimal) and a list of normalized scores.
+    """
     # Define the minimum and maximum possible scores for normalization
     min_score = Decimal("0")
     max_score = Decimal("100")
 
-    # Normalize the scores using the normalize_score function
+    # Normalize the scores
     normalized_scores = [
         normalize_score(score, min_score, max_score) if score is not None else None
         for score in scores.values()
     ]
 
-    # Calculate the weighted sum of errors by multiplying each normalized
-    # score by its corresponding weight and summing the results
+    # Calculate the weighted sum of errors
     weighted_sum_of_errors = sum(
         (Decimal("1") - score) * ERROR_TYPE_WEIGHTS[error_type]
         if score is not None
         else ERROR_TYPE_WEIGHTS[error_type]
         for score, error_type in zip(normalized_scores, scores.keys())
     )
-    print(f"Weighted sum of errors: {weighted_sum_of_errors}")
-    print(f"Normalized scores: {normalized_scores}")
+
     return weighted_sum_of_errors, normalized_scores
 
 
 def calculate_total_weighted_sum_of_errors(
     passport_scores, flight_ticket_scores, baggage_tag_scores
 ):
+    """
+    Calculates the total weighted sum of errors and error types for given dictionaries of passport, flight ticket, and baggage tag scores.
+
+    Args:
+        passport_scores (dict): A dictionary containing passport error types as keys and their respective scores as values.
+        flight_ticket_scores (dict): A dictionary containing flight ticket error types as keys and their respective scores as values.
+        baggage_tag_scores (dict): A dictionary containing baggage tag error types as keys and their respective scores as values.
+
+    Returns:
+        tuple: A tuple containing the total weighted sum of errors (Decimal) and a list of error types where the normalized score is below 0.5.
+    """
     # Combine the passport_scores, flight_ticket_scores, and baggage_tag_scores dictionaries
-    all_scores = {**(passport_scores or {}), **(flight_ticket_scores or {}), **(baggage_tag_scores or {})}
+    all_scores = {
+        **(passport_scores or {}),
+        **(flight_ticket_scores or {}),
+        **(baggage_tag_scores or {}),
+    }
 
     weighted_sum_of_errors, normalized_scores = calculate_weighted_sum_of_errors(
         all_scores
@@ -162,8 +184,6 @@ def calculate_total_weighted_sum_of_errors(
         for key, score in zip(all_scores.keys(), normalized_scores)
         if score is None or (score is not None and score < 0.5)
     ]
-
-    print(f"Total weighted sum of errors: {weighted_sum_of_errors}")
 
     return weighted_sum_of_errors, error_types
 
