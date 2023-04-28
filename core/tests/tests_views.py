@@ -1,5 +1,9 @@
+from io import BytesIO
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
+from PIL import Image
 
 from core.forms import PersonalDetailsForm
 
@@ -131,6 +135,61 @@ class CoverageItemsSelectionViewTests(TestCase):
             {
                 "coverage_items": ["Flight Delay or Abandonment", "Invalid Item"],
             },
+        )
+
+        form = response.context.get("form")
+        self.assertFalse(form.is_valid())
+        self.assertEqual(response.status_code, 200)
+
+
+class RequiredDocumentsViewTests(TestCase):
+    def create_temp_image(self, file_name):
+        image = Image.new("RGB", (100, 100))
+        image_io = BytesIO()
+        image.save(image_io, "JPEG")
+        image_io.seek(0)
+        return SimpleUploadedFile(
+            name=file_name, content=image_io.getvalue(), content_type="image/jpeg"
+        )
+
+    def test_required_documents_view_uses_correct_template(self):
+        response = self.client.get(reverse("required_documents"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "required_documents.html")
+
+    def test_required_documents_view_form_submission(self):
+        passport = self.create_temp_image("passport.jpg")
+        flight_ticket = self.create_temp_image("flight_ticket.jpg")
+        baggage_tag = self.create_temp_image("baggage_tag.jpg")
+
+        response = self.client.post(
+            reverse("required_documents"),
+            {
+                "passport": passport,
+                "flight_ticket": flight_ticket,
+                "baggage_tag": baggage_tag,
+            },
+            follow=True,
+        )
+
+        if response.status_code != 200:
+            form = response.context.get("form")
+            print("Form errors:", form.errors)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "claim_summary.html")
+
+    def test_required_documents_view_form_submission_with_errors(self):
+        flight_ticket = self.create_temp_image("flight_ticket.jpg")
+
+        response = self.client.post(
+            reverse("required_documents"),
+            {
+                "passport": "",
+                "flight_ticket": flight_ticket,
+                "baggage_tag": "",
+            },
+            follow=True,
         )
 
         form = response.context.get("form")
