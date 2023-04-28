@@ -9,6 +9,7 @@ ClaimLink is a Django web application designed to manage insurance claims for cu
 - Passport verification
 - Insurance claims submission and management
 - Admin panel for claims management
+- Integration with Ethereum blockchain for claim storage and verification
 
 ## Installation
 
