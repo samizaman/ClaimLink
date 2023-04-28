@@ -1,11 +1,14 @@
 from io import BytesIO
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from PIL import Image
 
 from core.forms import PersonalDetailsForm
+from core.models import Blockchain, Claim, CoverageItem, Customer
+from core.views import claim_success, claim_summary
 
 
 class HomeViewTestCase(TestCase):
@@ -194,4 +197,76 @@ class RequiredDocumentsViewTests(TestCase):
 
         form = response.context.get("form")
         self.assertFalse(form.is_valid())
+        self.assertEqual(response.status_code, 200)
+
+
+class ClaimSummaryTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.coverage_item = CoverageItem.objects.create(name="Test Coverage Item")
+        self.goerli_testnet = Blockchain.objects.create(network_name="Goerli Testnet")
+
+    def test_claim_summary_GET_request(self):
+        request = self.factory.get(reverse("claim_summary"))
+        request.session = {}
+        request.session["personal_details"] = {
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "phone_number": "1234567890",
+        }
+
+        request.session["claim_details"] = {
+            "date_of_loss": "2022-01-01",
+            "country_of_incident": "US",
+            "description_of_loss": "Test description of loss",
+            "claim_amount": 1000,
+        }
+        request.session["coverage_items"] = ["Test Coverage Item"]
+
+        response = claim_summary(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_claim_summary_POST_request(self):
+        request = self.factory.post(reverse("claim_summary"), data={"submit-btn": True})
+        request.session = {}
+        request.session["personal_details"] = {
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "phone_number": "1234567890",
+        }
+
+        request.session["claim_details"] = {
+            "date_of_loss": "2022-01-01",
+            "country_of_incident": "US",
+            "description_of_loss": "Test description of loss",
+            "claim_amount": 1000,
+        }
+        request.session["coverage_items"] = ["Test Coverage Item"]
+        request.session["weighted_sum_of_errors"] = "0"
+        request.session["error_types"] = []
+
+        response = claim_summary(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("claim_success"))
+
+    def test_claim_success_GET_request(self):
+        customer = Customer.objects.create(
+            name="John Doe", email="john.doe@example.com", phone_number="1234567890"
+        )
+
+        claim = Claim.objects.create(
+            customer=customer,
+            date_of_loss="2022-01-01",
+            country_of_incident="US",
+            description_of_loss="Test description of loss",
+            claim_amount=1000,
+        )
+        claim.coverage_items.add(self.coverage_item)
+        claim.save()
+
+        request = self.factory.get(reverse("claim_success"))
+        request.session = {}
+        request.session["claim_id"] = claim.id
+
+        response = claim_success(request)
         self.assertEqual(response.status_code, 200)
