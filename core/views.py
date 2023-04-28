@@ -150,7 +150,7 @@ def calculate_total_weighted_sum_of_errors(
     passport_scores, flight_ticket_scores, baggage_tag_scores
 ):
     # Combine the passport_scores, flight_ticket_scores, and baggage_tag_scores dictionaries
-    all_scores = {**passport_scores, **flight_ticket_scores, **baggage_tag_scores}
+    all_scores = {**(passport_scores or {}), **(flight_ticket_scores or {}), **(baggage_tag_scores or {})}
 
     weighted_sum_of_errors, normalized_scores = calculate_weighted_sum_of_errors(
         all_scores
@@ -198,7 +198,7 @@ def process_flight_ticket(flight_ticket, request):
     )
     flight_ticket_temp_path = default_storage.path(flight_ticket_path)
 
-    extracted_flight_data = extract_ticket_info(flight_ticket_temp_path)
+    extracted_flight_data = extract_ticket_info(flight_ticket_temp_path) or {}
     print(f"Extracted flight data: {extracted_flight_data}")
     os.remove(flight_ticket_temp_path)
 

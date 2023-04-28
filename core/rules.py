@@ -46,12 +46,12 @@ def compare_passport_and_flight_ticket_name(passport_name, flight_ticket_name):
 
 
 def check_extracted_flight_data(extracted_flight_data):
-    # print("Checking extracted flight data...")  # Debugging print statement
+    if extracted_flight_data is None:
+        return "incorrect_flight_ticket", Decimal("100")
+
     if all(value is None for value in extracted_flight_data.values()):
-        error_type = "incorrect_flight_ticket"
-        # print("Error detected: ", error_type)  # Debugging print statement
-        return error_type
-    return None
+        return "incorrect_flight_ticket", Decimal("100")
+    return None, None
 
 
 def check_extracted_baggage_data(extracted_baggage_data):
@@ -148,13 +148,23 @@ def check_passenger_name(flight_data, baggage_data):
     )  # Return None for both score and error_type if there's no mismatch
 
 
+def check_emirates_barcode(baggage_data):
+    airline_name = baggage_data.get("airline_name", "").lower()
+    barcode = baggage_data.get("barcode", "")
+
+    if airline_name == "emirates" and barcode and barcode[0] != "0":
+        error_type = "invalid_emirates_barcode"
+        return error_type
+    return None
+
+
 def process_extracted_flight_data(personal_details_name, passport_name, flight_data):
     # Check for incorrect or unreadable flight ticket documents
-    flight_error = check_extracted_flight_data(flight_data)
+    flight_error_key, flight_error_value = check_extracted_flight_data(flight_data)
 
     # If an error is detected, return the error_type and a None score
-    if flight_error:
-        return {flight_error: None}
+    if flight_error_key:
+        return {flight_error_key: flight_error_value}
 
     errors = {}
 
@@ -176,16 +186,6 @@ def process_extracted_flight_data(personal_details_name, passport_name, flight_d
 
     # Return the errors dictionary
     return errors
-
-
-def check_emirates_barcode(baggage_data):
-    airline_name = baggage_data.get("airline_name", "").lower()
-    barcode = baggage_data.get("barcode", "")
-
-    if airline_name == "emirates" and barcode and barcode[0] != "0":
-        error_type = "invalid_emirates_barcode"
-        return error_type
-    return None
 
 
 def process_extracted_baggage_data(flight_data, baggage_data):
