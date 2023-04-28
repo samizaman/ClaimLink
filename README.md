@@ -38,7 +38,11 @@ pip install -r requirements.txt
 ``
 python manage.py migrate
 ``
-8. Run the development server:
+8. Run the initialize_data.py script to set up initial data:
+``
+python initialize_data.py
+``
+9. Run the development server:
 ``
 python manage.py runserver
 ``
