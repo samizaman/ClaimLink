@@ -8,17 +8,27 @@ from core.utils import MAX_SCORE, MIN_SCORE, normalize_score
 def compare_personal_details_and_flight_ticket_name(
     personal_details_name, flight_ticket_name
 ):
+    """
+    Compare the personal details name with the flight ticket name to find discrepancies.
+
+    :param personal_details_name: str, name from personal details
+    :param flight_ticket_name: str, name from flight ticket
+    :return: tuple, (normalized_similarity_score, error_type) if the similarity score is below the threshold, (None, None) otherwise
+    """
     personal_details_name = personal_details_name.lower()
     flight_ticket_name = flight_ticket_name.lower()
 
+    # Calculate the similarity score between the personal details name and the flight ticket name
     similarity_score = fuzz.ratio(personal_details_name, flight_ticket_name)
 
+    # Normalize the similarity score
     normalized_similarity_score = normalize_score(
         similarity_score, MIN_SCORE, MAX_SCORE
     )
 
     threshold = Decimal("0.7")
 
+    # If the normalized similarity score is below the threshold, return the score and error_type
     if normalized_similarity_score < threshold:
         error_type = "flight_ticket_personal_details_name_mismatch"
         return normalized_similarity_score, error_type
@@ -27,17 +37,27 @@ def compare_personal_details_and_flight_ticket_name(
 
 
 def compare_passport_and_flight_ticket_name(passport_name, flight_ticket_name):
+    """
+    Compare the passport name with the flight ticket name to find discrepancies.
+
+    :param passport_name: str, name from passport
+    :param flight_ticket_name: str, name from flight ticket
+    :return: tuple, (normalized_similarity_score, error_type) if the similarity score is below the threshold, (None, None) otherwise
+    """
     passport_name = passport_name.lower()
     flight_ticket_name = flight_ticket_name.lower()
 
+    # Calculate the similarity score between the passport name and the flight ticket name
     similarity_score = fuzz.ratio(passport_name, flight_ticket_name)
 
+    # Normalize the similarity score
     normalized_similarity_score = normalize_score(
         similarity_score, MIN_SCORE, MAX_SCORE
     )
 
     threshold = Decimal("0.7")
 
+    # If the normalized similarity score is below the threshold, return the score and error_type
     if normalized_similarity_score < threshold:
         error_type = "flight_ticket_passport_name_mismatch"
         return normalized_similarity_score, error_type
@@ -159,6 +179,14 @@ def check_emirates_barcode(baggage_data):
 
 
 def process_extracted_flight_data(personal_details_name, passport_name, flight_data):
+    """
+    Process the extracted flight data and compare it with the personal details and passport name.
+
+    :param personal_details_name: str, user-provided name from personal details
+    :param passport_name: str, name extracted from the passport
+    :param flight_data: dict, extracted flight data including first_name and last_name
+    :return: dict, errors dictionary containing any discrepancies between the extracted flight data, personal details, and passport name
+    """
     # Check for incorrect or unreadable flight ticket documents
     flight_error_key, flight_error_value = check_extracted_flight_data(flight_data)
 
@@ -189,6 +217,13 @@ def process_extracted_flight_data(personal_details_name, passport_name, flight_d
 
 
 def process_extracted_baggage_data(flight_data, baggage_data):
+    """
+    Process the extracted baggage data and compare it with the flight data.
+
+    :param flight_data: dict, extracted flight data
+    :param baggage_data: dict, extracted baggage data
+    :return: dict, errors dictionary containing any discrepancies between the extracted flight data and baggage data
+    """
     errors = {}
 
     # Check for incorrect or unreadable baggage tag documents
