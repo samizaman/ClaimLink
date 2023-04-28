@@ -491,14 +491,30 @@ def claim_success(request):
 
 @staff_member_required
 def admin_view_claim(request):
+    """
+    Handles the admin view claim page, which allows staff members to view claim data from the blockchain.
+    The claim data is retrieved using a POST request with a provided input_data_hex.
+
+    Args:
+        request (HttpRequest): The request to the admin view claim page.
+
+    Returns:
+        HttpResponse: Renders the admin view claim page with the decoded claim data.
+    """
     claim_data = None
 
     if request.method == "POST":
+        # Get the input_data_hex from the POST request
         input_data_hex = request.POST.get("input_data")
+
+        # Remove the "0x" prefix from the input_data_hex if present
         if input_data_hex.startswith("0x"):
             input_data_hex = input_data_hex[2:]
+
+        # Convert the input_data_hex to text
         input_data = Web3.to_text(hexstr=input_data_hex)
 
+        # Try to parse the input_data as a JSON object
         try:
             claim_data = json.loads(input_data)
         except json.JSONDecodeError:
@@ -508,7 +524,10 @@ def admin_view_claim(request):
             # Get block information
             block_number = claim_data.get("block_number", None)
             if block_number:
+                # Retrieve the block from the blockchain using its block number
                 block = w3.eth.get_block(block_number)
+
+                # Add block hash and previous block hash to the claim_data dictionary
                 claim_data["block_hash"] = block.hash.hex()
                 claim_data["previous_block_hash"] = block.parentHash.hex()
 
