@@ -119,6 +119,15 @@ def check_gender_match(response, user_data):
 
 
 def analyze_passport(passport_path, user_data):
+    """
+    Analyze the passport image using the ID Analyzer API and compare the extracted information with the user data.
+
+    :param passport_path: str, path to the uploaded passport image
+    :param user_data: dict, user-provided information, including name, date of birth, and gender
+    :return: tuple (scores, extracted_data), where:
+             - scores: dict, scores for various rule-checking functions indicating any discrepancies or issues
+             - extracted_data: dict, data extracted from the passport image, such as name, passport expiry, date of birth, and gender
+    """
     if not USE_ID_ANALYZER_API:
         return {}, {}  # Assume the document is authentic if not using the API
 
