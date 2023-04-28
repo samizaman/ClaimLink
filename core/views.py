@@ -328,6 +328,16 @@ def required_documents(request):
 
 
 def get_severity_and_status(weighted_sum_of_errors, error_types):
+    """
+    Determines the severity, status, and reasons for the given weighted sum of errors and error types.
+
+    Args:
+        weighted_sum_of_errors (Decimal): The total weighted sum of errors calculated from the scores.
+        error_types (list): A list of error types where the normalized score is below 0.5.
+
+    Returns:
+        tuple: A tuple containing the severity (str), status (str), and a list of reasons (str) for the errors.
+    """
     reasons = []
     # Iterate over the severity thresholds
     for severity, threshold in SEVERITY_THRESHOLDS.items():
@@ -339,6 +349,7 @@ def get_severity_and_status(weighted_sum_of_errors, error_types):
             else:
                 status = "To Be Reviewed"
 
+            # If error_types is not empty, provide reasons for the errors
             if error_types:
                 verification_errors = {
                     "name_mismatch": "The name on the passport does not match the provided name.",
@@ -356,6 +367,7 @@ def get_severity_and_status(weighted_sum_of_errors, error_types):
                     "passenger_name_mismatch": "The passenger name on the baggage tag does not match the passenger name on the flight ticket.",
                     "invalid_emirates_barcode": "The barcode on the Emirates baggage tag is invalid.",
                 }
+                # Append the corresponding error descriptions to the reasons list
                 for error in error_types:
                     reasons.append(verification_errors.get(error, ""))
             return severity, status, reasons
