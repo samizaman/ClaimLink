@@ -89,7 +89,10 @@ def add_claim_to_blockchain(claim):
     # Send the transaction
     transaction_hash = w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
     try:
-        # Wait for the transaction to be mined
+        # We wait because the process of mining confirms the transaction, ensuring
+        # its validity and security within the Ethereum network. Until a transaction is mined and included in a block,
+        # it is considered unconfirmed and its finality is uncertain. By waiting for the transaction to be mined, we can
+        # confirm its success and proceed with any follow-up actions, such as saving the block information to the database.
         transaction_receipt = w3.eth.wait_for_transaction_receipt(transaction_hash)
     except Exception as e:
         print("Error while waiting for transaction receipt:", e)
