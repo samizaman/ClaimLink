@@ -374,6 +374,16 @@ def get_severity_and_status(weighted_sum_of_errors, error_types):
 
 
 def claim_summary(request):
+    """
+    Handles the claim summary page, either saving claim data to the database and redirecting to claim success page (for POST requests),
+    or displaying claim summary with customer details, claim details, and estimated gas fees (for GET requests).
+
+    Args:
+        request (HttpRequest): The request to the claim summary page.
+
+    Returns:
+        HttpResponse: Renders the claim summary page with customer and claim details, or redirects to the claim success page.
+    """
     if request.method == "POST":
         if "submit-btn" in request.POST:
             # Get customer details from the session
