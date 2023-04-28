@@ -27,12 +27,12 @@ AWS_SECRET_KEY=
 ```
 Fill in the appropriate values for each variable:
 
-ACCOUNT_ADDRESS: Your Ethereum wallet address.
-PRIVATE_KEY: The private key associated with your Ethereum wallet address.
-INFURA_PROJECT_ID: Your Infura project ID for accessing the Ethereum network.
-IDANALYZER_API_KEY: Your API key for the ID Analyzer service.
-AWS_ACCESS_KEY: Your AWS access key for accessing AWS services (e.g., S3).
-AWS_SECRET_KEY: Your AWS secret key for accessing AWS services (e.g., S3).
+- ACCOUNT_ADDRESS: Your Ethereum wallet address.
+- PRIVATE_KEY: The private key associated with your Ethereum wallet address.
+- INFURA_PROJECT_ID: Your Infura project ID for accessing the Ethereum network.
+- IDANALYZER_API_KEY: Your API key for the ID Analyzer service.
+- AWS_ACCESS_KEY: Your AWS access key for accessing AWS services (e.g., S3).
+- AWS_SECRET_KEY: Your AWS secret key for accessing AWS services (e.g., S3).
 
 Save the file and make sure it is gitignored to avoid accidentally committing sensitive information to the repository.
 
