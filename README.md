@@ -11,6 +11,31 @@ ClaimLink is a Django web application designed to manage insurance claims for cu
 - Admin panel for claims management
 - Integration with Ethereum blockchain for claim storage and verification
 
+## Configuration
+
+Before running the application, you need to set up your `.env` file with the necessary API keys and configuration settings. Create a new file named `.env` in the root directory of the project and add the following variables:
+
+```plaintext
+ACCOUNT_ADDRESS=
+PRIVATE_KEY=
+INFURA_PROJECT_ID=
+
+IDANALYZER_API_KEY=
+
+AWS_ACCESS_KEY=
+AWS_SECRET_KEY=
+```
+Fill in the appropriate values for each variable:
+
+ACCOUNT_ADDRESS: Your Ethereum wallet address.
+PRIVATE_KEY: The private key associated with your Ethereum wallet address.
+INFURA_PROJECT_ID: Your Infura project ID for accessing the Ethereum network.
+IDANALYZER_API_KEY: Your API key for the ID Analyzer service.
+AWS_ACCESS_KEY: Your AWS access key for accessing AWS services (e.g., S3).
+AWS_SECRET_KEY: Your AWS secret key for accessing AWS services (e.g., S3).
+
+Save the file and make sure it is gitignored to avoid accidentally committing sensitive information to the repository.
+
 ## Installation
 
 1. Ensure you have Python 3.10 installed on your machine.
