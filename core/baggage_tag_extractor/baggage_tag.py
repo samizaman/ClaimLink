@@ -21,6 +21,12 @@ USE_AWS = True  # Set to False when you don't want to Free Tier credits
 
 
 def read_barcode(image_path):
+    """
+    Read the barcode data from the given image path.
+
+    :param image_path: str, path to the input image containing a barcode
+    :return: str, decoded barcode data or None if no barcode is found
+    """
     image = Image.open(image_path)
     barcodes = decode(image)
 
@@ -65,6 +71,13 @@ def extract_details(text, airline_config):
 
 
 def process_baggage_tag(image_path, textract_client):
+    """
+    Process the baggage tag image, extracting text and barcode information.
+
+    :param image_path: str, path to the input baggage tag image
+    :param textract_client: boto3 Textract client, used for extracting text from the image
+    :return: dict, extracted baggage tag information or None if the processing failed
+    """
     text = extract_text(
         image_path=image_path, textract_client=textract_client, use_aws=USE_AWS
     )
@@ -105,6 +118,12 @@ def process_baggage_tag(image_path, textract_client):
 
 
 def process_baggage_tag_image(image_path):
+    """
+    Process the baggage tag image and return the extracted information.
+
+    :param image_path: str, path to the input baggage tag image
+    :return: dict, extracted baggage tag information
+    """
     textract_client = setup_textract_client(
         access_key=os.getenv("AWS_ACCESS_KEY"), secret_key=os.getenv("AWS_SECRET_KEY")
     )
