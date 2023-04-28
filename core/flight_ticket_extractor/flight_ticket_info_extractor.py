@@ -102,6 +102,13 @@ def process_airline_name(region_name, text, ticket_type=None):
 
 
 def validate_coordinates(image, region_coordinates):
+    """
+    Validate whether the given region coordinates are within the image boundaries.
+
+    :param image: ndarray, input image
+    :param region_coordinates: tuple, (x, y, w, h) region coordinates
+    :return: bool, True if the coordinates are valid, False otherwise
+    """
     x, y, w, h = region_coordinates
     height, width = image.shape[:2]
 
@@ -111,6 +118,15 @@ def validate_coordinates(image, region_coordinates):
 
 
 def process_text(region_name, text, processing_function, ticket_type=None):
+    """
+    Process the extracted text using the specified processing_function.
+
+    :param region_name: str, name of the region in the configuration file
+    :param text: str, extracted text from the region
+    :param processing_function: function, function to process the text (if required)
+    :param ticket_type: str, type of the ticket (e.g., 'flight', 'baggage')
+    :return: dict, processed text as a key-value pair
+    """
     text = text.strip()
     if not text:
         return {region_name: None}
@@ -122,6 +138,15 @@ def process_text(region_name, text, processing_function, ticket_type=None):
 
 
 def process_document(image, config, textract_client, ticket_type=None):
+    """
+    Process the document image using the given configuration, extracting text from specified regions.
+
+    :param image: ndarray, input image
+    :param config: dict, configuration for the document processing
+    :param textract_client: boto3 Textract client, used for extracting text from the image
+    :param ticket_type: str, type of the ticket (e.g., 'flight', 'baggage')
+    :return: dict, extracted and processed data from the image
+    """
     preprocessed_image = preprocess_image(image)
     extracted_data = {}
 
@@ -166,6 +191,13 @@ def process_document(image, config, textract_client, ticket_type=None):
 
 
 def read_image(file_path, file_extension):
+    """
+    Read the image from the given file path with the specified file extension.
+
+    :param file_path: str, path to the input image file
+    :param file_extension: str, file extension of the input image
+    :return: ndarray, image or None if the image could not be read
+    """
     if file_extension == ".pdf":
         images = convert_pdf_to_images(file_path)
         if images:
@@ -183,6 +215,14 @@ def read_image(file_path, file_extension):
 
 
 def load_and_process_config(image, textract_client, ticket_type):
+    """
+    Load the configuration file for the given ticket type and process the image using the configuration.
+
+    :param image: ndarray, input image
+    :param textract_client: boto3 Textract client, used for extracting text from the image
+    :param ticket_type: str, type of the ticket (e.g., 'flight', 'baggage')
+    :return: dict, extracted ticket information
+    """
     if image is not None:
         config_filename = f"{ticket_type}_ticket_config.json"
         config_path = os.path.join(
@@ -201,6 +241,13 @@ def load_and_process_config(image, textract_client, ticket_type):
 
 
 def determine_ticket_type(image, textract_client):
+    """
+    Determine the type of the ticket from the given image using a predefined set of keywords.
+
+    :param image: ndarray, input image
+    :param textract_client: boto3 Textract client, used for extracting text from the image
+    :return: str, ticket type (e.g., 'flight', 'baggage') or None if the ticket type could not be determined
+    """
     if image is not None:
         text = extract_text(
             image=image,
@@ -215,6 +262,12 @@ def determine_ticket_type(image, textract_client):
 
 
 def extract_ticket_info(file_path):
+    """
+    Extract ticket information from the given file path.
+
+    :param file_path: str, path to the input image file
+    :return: dict, extracted ticket information or None if the ticket type could not be determined
+    """
     textract_client = setup_textract_client(
         access_key=os.getenv("AWS_ACCESS_KEY"), secret_key=os.getenv("AWS_SECRET_KEY")
     )
@@ -222,10 +275,12 @@ def extract_ticket_info(file_path):
     file_extension = os.path.splitext(file_path)[1].lower()
     image = read_image(file_path, file_extension)
 
+    # Determine the ticket type
     ticket_type = determine_ticket_type(image, textract_client)
     if ticket_type is None:
         print("Error: Could not determine ticket type.")
         return None
 
+    # Load and process the configuration for the determined ticket type
     extracted_data = load_and_process_config(image, textract_client, ticket_type)
     return extracted_data
